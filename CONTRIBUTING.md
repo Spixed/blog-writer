@@ -1,8 +1,11 @@
 # Contributing
 
-Thanks for your interest in contributing!
+Thanks for your interest in contributing to Blog Writer!
 
 ## Setup
+
+Requirements: [Bun](https://bun.sh) ≥ 1.2. [Hugo](https://gohugo.io) is
+optional — needed only for the check/preview buttons and the render tests.
 
 ```bash
 bun install
@@ -10,30 +13,46 @@ cp .env.example .env   # point BLOG_ROOT at a Hugo blog you own
 bun dev
 ```
 
-Requires Bun ≥ 1.2. Hugo is needed only for the 校验/预览 buttons and the
-render tests.
+- Backend: <http://127.0.0.1:7841> · Frontend: <http://localhost:5173>
 
-## Before you open a PR
+## Project structure
+
+| Package | Scope |
+| --- | --- |
+| `packages/shared` | Types and contracts shared by every adapter |
+| `packages/server-node` | Fastify backend — keep it shell-agnostic |
+| `packages/frontend` | React UI — talk only to the `WorkspaceApi` contract, never to the backend directly |
+
+## Pull request checklist
+
+Before opening a PR, make sure all of the following pass:
 
 ```bash
 bun run typecheck
+bun run lint
 bun test
 ```
 
-If your change touches the frontend render pipeline, also run the checks
-listed in the README's [Testing](README.md#testing) section from
+If your change touches the frontend render pipeline, also run the frontend
+checks listed in the README's [Testing](README.md#testing) section from
 `packages/frontend`.
 
 ## The round-trip guarantee
 
-This project's core invariant is that **reading a post and writing it back
-must leave the file byte identical** (see the README). If your change can
-affect markdown parsing, front-matter handling, or serialization, make sure
-the round-trip tests still pass — byte drift is a bug, not a tradeoff.
+This project's core invariant: **reading a post and writing it back must
+leave the file byte identical**. The editor re-serializes only the blocks you
+actually edit; everything else — including CRLF line endings and Hugo
+shortcodes it doesn't model — must survive verbatim.
 
-## Scope
+If your change can affect markdown parsing, front-matter handling, or
+serialization, make sure the round-trip tests still pass. Byte drift is a
+bug, not a tradeoff.
 
-- `packages/shared` — types and contracts shared by every adapter
-- `packages/server-node` — Fastify backend; keep it shell-agnostic
-- `packages/frontend` — React UI; talk only to the `WorkspaceApi` contract,
-  never to the backend directly
+## Code style
+
+Formatting and linting are enforced by [Biome](https://biomejs.dev):
+
+```bash
+bun run lint      # check
+bun run format    # auto-fix
+```

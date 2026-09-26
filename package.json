@@ -1,5 +1,5 @@
 {
-  "name": "blog-writer-web",
+  "name": "blog-writer",
   "private": true,
   "version": "0.1.0",
   "description": "A WYSIWYG editor for Hugo blogs (polymer theme), with split-render and bilingual modes.",
