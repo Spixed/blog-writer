@@ -9,7 +9,7 @@ modes — with a byte-exact round-trip guarantee.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/runtime-Bun%20%E2%89%A5%201.2-f472b6)](https://bun.sh)
 
-[English](README.md) · [简体中文](README.zh-CN.md)
+English · [简体中文](README.zh-CN.md)
 
 </div>
 
