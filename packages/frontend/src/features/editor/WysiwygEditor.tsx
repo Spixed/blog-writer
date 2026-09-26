@@ -11,39 +11,40 @@
  * verbatim for raw blocks). External `value` changes are only applied when the
  * editor is not focused, so typing never fights the prop.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { Extension } from '@tiptap/core';
+import Placeholder from '@tiptap/extension-placeholder';
+import { Table } from '@tiptap/extension-table';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableRow } from '@tiptap/extension-table-row';
+import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
-import type { Editor } from '@tiptap/react';
-import { ChevronDown, Code2, Link2, List, Quote } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
-import { EditorCodeBlock } from './extensions/code-block.js';
 import { common, createLowlight } from 'lowlight';
-import Placeholder from '@tiptap/extension-placeholder';
-import { Extension } from '@tiptap/core';
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableHeader } from '@tiptap/extension-table-header';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { markdownToProse, proseToMarkdown, type ProseDoc } from '../../render/prose.js';
-import { DropCap } from './extensions/drop-cap.js';
-import { LoneImage } from './extensions/lone-image.js';
-import { RawBlock } from './RawBlock.js';
+import { ChevronDown, Code2, Link2, List, Quote } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useResolvedTheme } from '../../hooks/useResolvedTheme.js';
+import { useI18n } from '../../i18n/useI18n.js';
+import { formatCombo } from '../../platform.js';
+import { markdownToProse, type ProseDoc, proseToMarkdown } from '../../render/prose.js';
+import { useUI } from '../../store/ui.js';
 import { BlockHandle } from './BlockHandle.js';
-import { TableDrag } from './TableDrag.js';
+import { EditorCodeBlock } from './extensions/code-block.js';
+import { DropCap } from './extensions/drop-cap.js';
+import { HL_COLORS, Hl } from './extensions/hl.js';
+import { Image } from './extensions/image.js';
+import { LoneImage } from './extensions/lone-image.js';
+import { MathInline } from './extensions/math-inline.js';
 import { Qmoji } from './extensions/qmoji.js';
 import { Ruby } from './extensions/ruby.js';
-import { MathInline } from './extensions/math-inline.js';
-import { Image } from './extensions/image.js';
-import { Hl, HL_COLORS } from './extensions/hl.js';
 import { FormattingToolbar } from './FormattingToolbar.js';
-import { SlashMenu, type SlashApi } from './SlashMenu.js';
-import { QmojiPicker } from './QmojiPicker.js';
-import { useI18n } from '../../i18n/useI18n.js';
-import { useResolvedTheme } from '../../hooks/useResolvedTheme.js';
-import { useUI } from '../../store/ui.js';
-import { formatCombo } from '../../platform.js';
 import { ImageDialog } from './ImageDialog.js';
+import { QmojiPicker } from './QmojiPicker.js';
+import { RawBlock } from './RawBlock.js';
+import { type SlashApi, SlashMenu } from './SlashMenu.js';
+import { TableDrag } from './TableDrag.js';
 import { TocPanel } from './TocPanel.js';
 
 export interface WysiwygEditorProps {
@@ -97,7 +98,9 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
       if (previous?.__saveScroll) previous.removeEventListener('scroll', previous.__saveScroll);
       scrollEl.current = el;
       if (el && scrollKey) {
-        const saveScroll = () => { if (!restoringScroll.current) scrollCache.set(scrollKey, el.scrollTop); };
+        const saveScroll = () => {
+          if (!restoringScroll.current) scrollCache.set(scrollKey, el.scrollTop);
+        };
         el.addEventListener('scroll', saveScroll, { passive: true });
         (el as HTMLDivElement & { __saveScroll?: () => void }).__saveScroll = saveScroll;
       }
@@ -106,13 +109,18 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     [scrollKey, scrollRef],
   );
 
-  const extensions = useMemo(() => [
+  const extensions = useMemo(
+    () => [
       // The blog's Goldmark renders tables but not strikethrough or underline,
       // so those marks stay out of the editor.
       StarterKit.configure({
         strike: {},
         codeBlock: false,
-        link: { openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer' } },
+        link: {
+          openOnClick: false,
+          autolink: true,
+          HTMLAttributes: { rel: 'noopener noreferrer' },
+        },
       }),
       EditorCodeBlock.configure({ lowlight: createLowlight(common), defaultLanguage: 'plaintext' }),
       Placeholder.configure({ placeholder: t('editorPlaceholder') }),
@@ -155,39 +163,53 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
           };
         },
       }),
-    ], [t]);
-  const editorProps = useMemo(() => ({
-    attributes: { class: 'content wysiwyg-prose', spellcheck: 'false' },
-    handleDOMEvents: {
-      click: (_view: unknown, event: MouseEvent) => {
-        if ((!event.ctrlKey && !event.metaKey) || event.button !== 0) return false;
-        const target = event.target as Element | null;
-        const anchor = target?.closest('a[href]') as HTMLAnchorElement | null;
-        if (!anchor) return false;
-        event.preventDefault();
-        window.open(anchor.href, '_blank', 'noopener,noreferrer');
-        return true;
+    ],
+    [t],
+  );
+  const editorProps = useMemo(
+    () => ({
+      attributes: { class: 'content wysiwyg-prose', spellcheck: 'false' },
+      handleDOMEvents: {
+        click: (_view: unknown, event: MouseEvent) => {
+          if ((!event.ctrlKey && !event.metaKey) || event.button !== 0) return false;
+          const target = event.target as Element | null;
+          const anchor = target?.closest('a[href]') as HTMLAnchorElement | null;
+          if (!anchor) return false;
+          event.preventDefault();
+          window.open(anchor.href, '_blank', 'noopener,noreferrer');
+          return true;
+        },
       },
+    }),
+    [],
+  );
+  const handleUpdate = useCallback(
+    ({ editor }: { editor: Editor }) => {
+      if (serialiseTimer.current !== null) cancelAnimationFrame(serialiseTimer.current);
+      // Serialising a 40KB document is linear. Coalesce bursts from IME/paste
+      // and let ProseMirror paint first so typing never blocks the main thread.
+      serialiseTimer.current = requestAnimationFrame(() => {
+        const next = proseToMarkdown(editor.getJSON() as ProseDoc);
+        if (next !== lastValueRef.current) {
+          lastValueRef.current = next;
+          onChange(next);
+        }
+      });
     },
-  }), []);
-  const handleUpdate = useCallback(({ editor }: { editor: Editor }) => {
-    if (serialiseTimer.current !== null) cancelAnimationFrame(serialiseTimer.current);
-    // Serialising a 40KB document is linear. Coalesce bursts from IME/paste
-    // and let ProseMirror paint first so typing never blocks the main thread.
-    serialiseTimer.current = requestAnimationFrame(() => {
-      const next = proseToMarkdown(editor.getJSON() as ProseDoc);
-      if (next !== lastValueRef.current) { lastValueRef.current = next; onChange(next); }
-    });
-  }, [onChange]);
+    [onChange],
+  );
 
-  const editor = useEditor({
-    extensions,
-    content: initialContent,
-    immediatelyRender: false,
-    shouldRerenderOnTransaction: false,
-    editorProps,
-    onUpdate: handleUpdate,
-  }, []);
+  const editor = useEditor(
+    {
+      extensions,
+      content: initialContent,
+      immediatelyRender: false,
+      shouldRerenderOnTransaction: false,
+      editorProps,
+      onUpdate: handleUpdate,
+    },
+    [],
+  );
 
   // Apply external changes only when the user is not mid-edit.
   useEffect(() => {
@@ -264,7 +286,10 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
         // Seek by caret: raw blocks render async, so a snapshotted offset
         // drifts while node views settle — scrollIntoView always lands the
         // caret in view regardless of layout changes.
-        editor.commands.setTextSelection({ from: Math.min(savedSel.from, size), to: Math.min(savedSel.to, size) });
+        editor.commands.setTextSelection({
+          from: Math.min(savedSel.from, size),
+          to: Math.min(savedSel.to, size),
+        });
       }
       requestAnimationFrame(() => {
         const el = scrollEl.current;
@@ -315,7 +340,14 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     const rt = rubyRt.trim();
     if (text && rt) {
       const range = rubyRange.current ?? editor.state.selection;
-      editor.chain().focus().insertContentAt({ from: range.from, to: range.to }, { type: 'ruby', attrs: { rt }, content: [{ type: 'text', text }] }).run();
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(
+          { from: range.from, to: range.to },
+          { type: 'ruby', attrs: { rt }, content: [{ type: 'text', text }] },
+        )
+        .run();
     }
     rubyRange.current = null;
     setRubyOpen(false);
@@ -326,7 +358,11 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
   const toggleRuby = () => {
     if (!editor) return;
     const { $from, from, to } = editor.state.selection;
-    const selectedNode = (editor.state.selection as typeof editor.state.selection & { node?: { type: { name: string }; textContent: string } }).node;
+    const selectedNode = (
+      editor.state.selection as typeof editor.state.selection & {
+        node?: { type: { name: string }; textContent: string };
+      }
+    ).node;
     if (selectedNode?.type.name === 'ruby') {
       editor.chain().focus().insertContentAt({ from, to }, selectedNode.textContent).run();
       return;
@@ -334,7 +370,14 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     for (let depth = $from.depth; depth > 0; depth--) {
       if ($from.node(depth).type.name !== 'ruby') continue;
       const pos = $from.before(depth);
-      editor.chain().focus().insertContentAt({ from: pos, to: pos + $from.node(depth).nodeSize }, $from.node(depth).textContent).run();
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(
+          { from: pos, to: pos + $from.node(depth).nodeSize },
+          $from.node(depth).textContent,
+        )
+        .run();
       return;
     }
     setRubyText(editor.state.doc.textBetween(from, to));
@@ -347,7 +390,14 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     if (editor?.isActive('qmoji')) editor.chain().focus().updateAttributes('qmoji', { name }).run();
     else {
       const chain = editor?.chain().focus();
-      if (mode === 'block') chain?.insertContent([{ type: 'hardBreak' }, { type: 'qmoji', attrs: { name, mode } }, { type: 'hardBreak' }]).run();
+      if (mode === 'block')
+        chain
+          ?.insertContent([
+            { type: 'hardBreak' },
+            { type: 'qmoji', attrs: { name, mode } },
+            { type: 'hardBreak' },
+          ])
+          .run();
       else chain?.insertQmoji(name).run();
     }
     setQmojiPos(null);
@@ -372,7 +422,12 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     if (!editor) return;
     const tex = mathText.trim();
     const range = mathRange.current ?? editor.state.selection;
-    if (tex) editor.chain().focus().insertContentAt({ from: range.from, to: range.to }, { type: 'mathInline', attrs: { tex } }).run();
+    if (tex)
+      editor
+        .chain()
+        .focus()
+        .insertContentAt({ from: range.from, to: range.to }, { type: 'mathInline', attrs: { tex } })
+        .run();
     mathRange.current = null;
     setMathOpen(null);
     setMathText('');
@@ -382,7 +437,11 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
     if (!editor) return;
     const { $from } = editor.state.selection;
     const before = $from.parent.textBetween(0, $from.parentOffset, '\n', '\ufffc');
-    editor.chain().focus().insertContent(before && !/\s$/.test(before) ? ' /' : '/').run();
+    editor
+      .chain()
+      .focus()
+      .insertContent(before && !/\s$/.test(before) ? ' /' : '/')
+      .run();
   };
 
   if (!editor) {
@@ -399,8 +458,20 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
 
   return (
     <div className="wysiwyg-surface">
-      <FormattingToolbar editor={editor} onOpenQmoji={openQmoji} onOpenSlash={openSlash} onRuby={toggleRuby} onInlineMath={openInlineMath} />
-      {tocOpen && <TocPanel editor={editor} scrollerRef={scrollEl} onClose={() => useUI.getState().toggleToc()} />}
+      <FormattingToolbar
+        editor={editor}
+        onOpenQmoji={openQmoji}
+        onOpenSlash={openSlash}
+        onRuby={toggleRuby}
+        onInlineMath={openInlineMath}
+      />
+      {tocOpen && (
+        <TocPanel
+          editor={editor}
+          scrollerRef={scrollEl}
+          onClose={() => useUI.getState().toggleToc()}
+        />
+      )}
       <div
         className="wysiwyg-scroll theme-root"
         data-theme={theme === 'dark' ? 'dark' : 'light'}
@@ -414,14 +485,37 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
         <form
           className="inline-math-dialog"
           style={{ top: mathOpen.top, left: mathOpen.left }}
-          onSubmit={(event) => { event.preventDefault(); submitInlineMath(); }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            submitInlineMath();
+          }}
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <label>行内公式<input autoFocus aria-label="行内公式内容" value={mathText} onChange={(event) => setMathText(event.target.value)} placeholder="例如 x^2 + y^2" /></label>
-          <div><button type="button" onClick={() => setMathOpen(null)}>取消</button><button type="submit" disabled={!mathText.trim()}>插入</button></div>
+          <label>
+            行内公式
+            <input
+              aria-label="行内公式内容"
+              value={mathText}
+              onChange={(event) => setMathText(event.target.value)}
+              placeholder="例如 x^2 + y^2"
+            />
+          </label>
+          <div>
+            <button type="button" onClick={() => setMathOpen(null)}>
+              取消
+            </button>
+            <button type="submit" disabled={!mathText.trim()}>
+              插入
+            </button>
+          </div>
         </form>
       )}
-      <BubbleMenu editor={editor} className="bubble-menu" updateDelay={100} options={{ placement: 'top', offset: 8 }}>
+      <BubbleMenu
+        editor={editor}
+        className="bubble-menu"
+        updateDelay={100}
+        options={{ placement: 'top', offset: 8 }}
+      >
         {linkOpen ? (
           <form
             className="bubble-link"
@@ -431,7 +525,6 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
             }}
           >
             <input
-              autoFocus
               type="url"
               placeholder="https://"
               value={linkHref}
@@ -454,7 +547,6 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
             }}
           >
             <input
-              autoFocus
               className="ruby-text"
               placeholder={t('shortcodeRubyText')}
               value={rubyText}
@@ -464,7 +556,10 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
                   e.preventDefault();
                   setRubyOpen(false);
                 }
-                if (e.key === 'Enter') { e.preventDefault(); submitRuby(); }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submitRuby();
+                }
               }}
             />
             <input
@@ -477,22 +572,54 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
                   e.preventDefault();
                   setRubyOpen(false);
                 }
-                if (e.key === 'Enter') { e.preventDefault(); submitRuby(); }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submitRuby();
+                }
               }}
             />
-            <button type="submit" title="应用注音">应用</button>
+            <button type="submit" title="应用注音">
+              应用
+            </button>
           </form>
         ) : (
           <>
-            <BubbleBtn editor={editor} mark="bold" label="B" className="bold" title={`Bold (${formatCombo('Mod+B')})`} />
-            <BubbleBtn editor={editor} mark="italic" label="I" className="italic" title={`Italic (${formatCombo('Mod+I')})`} />
-            <BubbleBtn editor={editor} mark="code" label={<Code2 size={15} />} title={t('inlineCode')} />
+            <BubbleBtn
+              editor={editor}
+              mark="bold"
+              label="B"
+              className="bold"
+              title={`Bold (${formatCombo('Mod+B')})`}
+            />
+            <BubbleBtn
+              editor={editor}
+              mark="italic"
+              label="I"
+              className="italic"
+              title={`Italic (${formatCombo('Mod+I')})`}
+            />
+            <BubbleBtn
+              editor={editor}
+              mark="code"
+              label={<Code2 size={15} />}
+              title={t('inlineCode')}
+            />
             <BubbleBtn editor={editor} mark="strike" label="S" className="strike" title="删除线" />
             <BubbleBtn editor={editor} node="heading" attrs={{ level: 1 }} label="H1" />
             <BubbleBtn editor={editor} node="heading" attrs={{ level: 2 }} label="H2" />
             <BubbleBtn editor={editor} node="heading" attrs={{ level: 3 }} label="H3" />
-            <BubbleBtn editor={editor} node="bulletList" label={<List size={15} />} title={t('slashBullet')} />
-            <BubbleBtn editor={editor} node="blockquote" label={<Quote size={15} />} title={t('slashQuote')} />
+            <BubbleBtn
+              editor={editor}
+              node="bulletList"
+              label={<List size={15} />}
+              title={t('slashBullet')}
+            />
+            <BubbleBtn
+              editor={editor}
+              node="blockquote"
+              label={<Quote size={15} />}
+              title={t('slashQuote')}
+            />
             <BubbleHl editor={editor} />
             <button
               type="button"
@@ -517,12 +644,28 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
           </>
         )}
       </BubbleMenu>
-      <SlashMenu editor={editor} apiRef={slashApi} onOpenQmoji={setQmojiPos} onOpenImage={() => setImageOpen(true)} onOpenInlineMath={openInlineMath} />
-      <QmojiPicker open={qmojiPos !== null} position={qmojiPos} onClose={() => setQmojiPos(null)} onPick={pickQmoji} />
-      {imageOpen && <ImageDialog onClose={() => setImageOpen(false)} onInsert={(src, alt) => {
-        editor.chain().focus().insertImage({ src, alt }).run();
-        setImageOpen(false);
-      }} />}
+      <SlashMenu
+        editor={editor}
+        apiRef={slashApi}
+        onOpenQmoji={setQmojiPos}
+        onOpenImage={() => setImageOpen(true)}
+        onOpenInlineMath={openInlineMath}
+      />
+      <QmojiPicker
+        open={qmojiPos !== null}
+        position={qmojiPos}
+        onClose={() => setQmojiPos(null)}
+        onPick={pickQmoji}
+      />
+      {imageOpen && (
+        <ImageDialog
+          onClose={() => setImageOpen(false)}
+          onInsert={(src, alt) => {
+            editor.chain().focus().insertImage({ src, alt }).run();
+            setImageOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -551,7 +694,11 @@ function BubbleBtn({
     editor,
     selector: (snap) => {
       if (!snap.editor) return false;
-      return mark ? snap.editor.isActive(mark) : node ? snap.editor.isActive(node, attrs ?? {}) : false;
+      return mark
+        ? snap.editor.isActive(mark)
+        : node
+          ? snap.editor.isActive(node, attrs ?? {})
+          : false;
     },
   });
   const run = () => {
@@ -560,7 +707,11 @@ function BubbleBtn({
     else if (mark === 'code') editor.chain().focus().toggleCode().run();
     else if (mark === 'strike') editor.chain().focus().toggleStrike().run();
     else if (node === 'heading')
-      editor.chain().focus().toggleHeading({ level: (Number(attrs?.level ?? 1) as 1 | 2 | 3 | 4 | 5 | 6) }).run();
+      editor
+        .chain()
+        .focus()
+        .toggleHeading({ level: Number(attrs?.level ?? 1) as 1 | 2 | 3 | 4 | 5 | 6 })
+        .run();
     else if (node === 'bulletList') editor.chain().focus().toggleBulletList().run();
     else if (node === 'blockquote') editor.chain().focus().toggleBlockquote().run();
   };
@@ -594,7 +745,13 @@ function BubbleHl({ editor }: { editor: Editor }) {
         className={activeColor ? 'active' : ''}
         title={t('slashHl')}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => editor.chain().focus().toggleHl(activeColor || HL_COLORS[0]!).run()}
+        onClick={() =>
+          editor
+            .chain()
+            .focus()
+            .toggleHl(activeColor || HL_COLORS[0]!)
+            .run()
+        }
       >
         <span className="hl-swatch" style={{ background: hlHex(activeColor) }} />
       </button>

@@ -3,14 +3,15 @@
  * actions open. Deleting is undoable: the file's exact bytes are kept and
  * restored verbatim, so an undo never drifts the file.
  */
-import { useEffect, useRef, useState } from 'react';
+
 import type { Lang } from '@blog-writer/shared';
+import { useEffect, useRef, useState } from 'react';
+import { Dialog, DialogActions, useToasts } from '../../components/ui.js';
 import { useDeletePost, usePost, useRenamePost, useRestorePost } from '../../hooks/queries.js';
 import { useI18n } from '../../i18n/useI18n.js';
 import { useUndo } from '../../store/undo.js';
-import { Dialog, DialogActions, useToasts } from '../../components/ui.js';
 
-const OTHER_LANG: Record<Lang, Lang> = { zh: 'en', en: 'zh' };
+const _OTHER_LANG: Record<Lang, Lang> = { zh: 'en', en: 'zh' };
 
 export interface MenuState {
   x: number;
@@ -95,12 +96,7 @@ export function RenameDialog({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <label className="field">
           <span>{t('slug')}</span>
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoFocus
-          />
+          <input type="text" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
         </label>
         <label className="toggle">
           <input type="checkbox" checked={pair} onChange={(e) => setPair(e.target.checked)} />

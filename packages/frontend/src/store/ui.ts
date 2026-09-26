@@ -1,6 +1,6 @@
+import type { Lang } from '@blog-writer/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Lang } from '@blog-writer/shared';
 import type { UiLang } from '../i18n/dicts.js';
 
 export type AppTheme = 'light' | 'dark' | 'auto';
@@ -113,10 +113,10 @@ export const useUI = create<UIState>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setFmPos: (lang, pos) => set((s) => ({ fmPos: { ...s.fmPos, [lang]: pos } })),
-      setSplitRatio: (splitRatio) =>
-        set({ splitRatio: Math.min(0.8, Math.max(0.2, splitRatio)) }),
+      setSplitRatio: (splitRatio) => set({ splitRatio: Math.min(0.8, Math.max(0.2, splitRatio)) }),
       setAutosave: (autosave) => set({ autosave }),
-      setAutosaveDelay: (autosaveDelay) => set({ autosaveDelay: Math.min(10000, Math.max(250, autosaveDelay)) }),
+      setAutosaveDelay: (autosaveDelay) =>
+        set({ autosaveDelay: Math.min(10000, Math.max(250, autosaveDelay)) }),
       setSourceWrap: (sourceWrap) => set({ sourceWrap }),
       setSearch: (search) => set({ search }),
       setSort: (sort) => set({ sort }),
@@ -155,7 +155,7 @@ export const useUI = create<UIState>()(
               : p.bilingual
                 ? 'bilingual'
                 : 'wysiwyg'
-            : (mode as EditorMode) ?? 'wysiwyg';
+            : ((mode as EditorMode) ?? 'wysiwyg');
         return {
           uiLang: (p.uiLang as UiLang) ?? 'zh',
           theme: (p.theme as AppTheme) ?? 'auto',

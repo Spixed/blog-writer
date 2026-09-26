@@ -1,6 +1,6 @@
-import yaml from 'js-yaml';
-import { CANONICAL_FM_KEYS, formatDateField } from '@blog-writer/shared';
 import type { Frontmatter } from '@blog-writer/shared';
+import { CANONICAL_FM_KEYS, formatDateField } from '@blog-writer/shared';
+import yaml from 'js-yaml';
 
 const FM_SPLIT_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
@@ -56,7 +56,9 @@ export function fmEqual(a: unknown, b: unknown): boolean {
   const ak = Object.keys(a).filter((k) => (a as Record<string, unknown>)[k] !== undefined);
   const bk = Object.keys(b).filter((k) => (b as Record<string, unknown>)[k] !== undefined);
   if (ak.length !== bk.length) return false;
-  return ak.every((k) => fmEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  return ak.every((k) =>
+    fmEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]),
+  );
 }
 
 function sortKeys(fm: Frontmatter): string[] {

@@ -2,8 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { Lang, PostContent, PostMeta } from '@blog-writer/shared';
 import { LANGS, parseDateField, validateSlug } from '@blog-writer/shared';
+import { dumpFile, type ParsedFile, parseFile } from './frontmatter-io.js';
 import type { Site } from './site.js';
-import { dumpFile, parseFile, type ParsedFile } from './frontmatter-io.js';
 
 const OTHER_LANG: Record<Lang, Lang> = { zh: 'en', en: 'zh' };
 
@@ -129,7 +129,14 @@ export class PostStore {
     }
     const parsed = existingRaw !== null ? parseFile(existingRaw) : null;
     const text = dumpFile(
-      parsed ?? { raw: '', frontmatterRaw: '', frontmatter: {}, body: '', eol: '\n', hasFrontmatter: false },
+      parsed ?? {
+        raw: '',
+        frontmatterRaw: '',
+        frontmatter: {},
+        body: '',
+        eol: '\n',
+        hasFrontmatter: false,
+      },
       next,
     );
     await this.atomicWrite(p, text);
@@ -152,7 +159,8 @@ export class PostStore {
     this.guardSlug(newSlug);
     if (slug === newSlug) return;
     const ops: [string, string][] = [[this.pathFor(lang, slug), this.pathFor(lang, newSlug)]];
-    if (pair) ops.push([this.pathFor(OTHER_LANG[lang], slug), this.pathFor(OTHER_LANG[lang], newSlug)]);
+    if (pair)
+      ops.push([this.pathFor(OTHER_LANG[lang], slug), this.pathFor(OTHER_LANG[lang], newSlug)]);
     for (const [from, to] of ops) {
       if (!(await fileExists(from))) continue;
       if (await fileExists(to)) throw new Error(`目标文章已存在: ${path.basename(to)}`);
@@ -191,7 +199,11 @@ export class PostStore {
   }
 
   /** All posts across both languages with parsed front matter (for taxonomy). */
-  async *scanAll(): AsyncGenerator<{ lang: Lang; slug: string; frontmatter: Record<string, unknown> }> {
+  async *scanAll(): AsyncGenerator<{
+    lang: Lang;
+    slug: string;
+    frontmatter: Record<string, unknown>;
+  }> {
     for (const lang of LANGS) {
       const metas = await this.list(lang);
       for (const m of metas) {

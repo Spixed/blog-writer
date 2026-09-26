@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { watch, type FSWatcher } from 'chokidar';
 import type { Lang, WatchEvent } from '@blog-writer/shared';
+import { type FSWatcher, watch } from 'chokidar';
 import type { Site } from './site.js';
 
 type Listener = (e: WatchEvent) => void;
@@ -27,8 +27,11 @@ export class Watcher {
     // Chokidar v4 deliberately dropped glob expansion. Watch directories and
     // filter paths in handleChange so nested posts and media are reliable.
     const paths = [
-      path.join(root, 'hugo.toml'), path.join(root, 'config.toml'),
-      path.join(root, 'content'), path.join(root, 'data'), path.join(root, 'static'),
+      path.join(root, 'hugo.toml'),
+      path.join(root, 'config.toml'),
+      path.join(root, 'content'),
+      path.join(root, 'data'),
+      path.join(root, 'static'),
     ];
     if (themeDir) {
       paths.push(path.join(themeDir, 'data'));
@@ -41,8 +44,7 @@ export class Watcher {
     });
 
     const emit = (e: WatchEvent) => {
-      const key =
-        'lang' in e ? `${e.type}:${e.lang}:${e.slug}` : e.type;
+      const key = 'lang' in e ? `${e.type}:${e.lang}:${e.slug}` : e.type;
       const existing = this.debounceTimers.get(key);
       if (existing) clearTimeout(existing);
       this.debounceTimers.set(

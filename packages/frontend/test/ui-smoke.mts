@@ -48,6 +48,7 @@ const { QueryClient, QueryClientProvider } = await import('@tanstack/react-query
 const { EditorArea } = await import('../src/features/editor/EditorArea.tsx');
 const { useUI } = await import('../src/store/ui.ts');
 const { qk } = await import('../src/hooks/queries.js');
+
 import type { PostContent, WorkspaceConfig } from '@blog-writer/shared';
 
 // The store's SSR snapshot object (see header note).
@@ -169,7 +170,10 @@ console.log('ui-smoke: split mode');
   assert(html.includes('class="split-divider"'), 'draggable divider');
   // The split source editor is CodeMirror now. SSR only renders the host div
   // — the EditorView mounts in a browser effect, so cm-editor never appears.
-  assert(html.includes('class="markdown-source-editor markdown-source-input"'), 'full-height CodeMirror source editor');
+  assert(
+    html.includes('class="markdown-source-editor markdown-source-input"'),
+    'full-height CodeMirror source editor',
+  );
   assert(html.includes('class="split-preview"'), 'preview column');
   assert(html.includes('class="preview-scroll theme-root"'), 'theme root on the preview scroller');
   assert(html.includes('class="content preview-prose"'), 'preview content column');

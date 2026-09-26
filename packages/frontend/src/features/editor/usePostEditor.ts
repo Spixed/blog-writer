@@ -5,14 +5,15 @@
  * The state lives above the mode switch so changing the editor mode (or
  * flipping into bilingual) never drops unsaved edits.
  */
-import { useEffect, useRef, useState } from 'react';
+
 import type { Frontmatter, Lang, PostContent } from '@blog-writer/shared';
-import { useActiveWorkspace, usePost, useWritePost } from '../../hooks/queries.js';
-import { useHugo } from '../../store/hugo.js';
+import { useEffect, useRef, useState } from 'react';
 import { useToasts } from '../../components/ui.js';
+import { useActiveWorkspace, usePost, useWritePost } from '../../hooks/queries.js';
 import { useI18n } from '../../i18n/useI18n.js';
-import { useUI } from '../../store/ui.js';
 import { sourceHasMath } from '../../render/math.js';
+import { useHugo } from '../../store/hugo.js';
+import { useUI } from '../../store/ui.js';
 
 export interface PostEditor {
   post: PostContent | undefined;
@@ -59,11 +60,16 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
   const key = `${workspace.data?.name ?? ''}:${lang}:${slug ?? ''}`;
 
   const [body, setBody] = useState<string>(() => stripLead(post.data?.body ?? ''));
-  const [fm, setFm] = useState<Frontmatter>(() => withDerivedMath(post.data?.frontmatter ?? EMPTY_FM, stripLead(post.data?.body ?? '')));
+  const [fm, setFm] = useState<Frontmatter>(() =>
+    withDerivedMath(post.data?.frontmatter ?? EMPTY_FM, stripLead(post.data?.body ?? '')),
+  );
   // The blank lines a file has between its front matter and its first block are
   // invisible in Markdown (Hugo drops them), so they are kept out of the
   // editing surface but re-prepended on save to keep the file byte-exact.
-  const leadRef = useRef(post.data?.body.slice(0, post.data?.body.length - stripLead(post.data?.body ?? '').length) ?? '');
+  const leadRef = useRef(
+    post.data?.body.slice(0, post.data?.body.length - stripLead(post.data?.body ?? '').length) ??
+      '',
+  );
   const [saved, setSaved] = useState({
     fm: post.data?.frontmatter ?? EMPTY_FM,
     body: stripLead(post.data?.body ?? ''),
@@ -83,9 +89,13 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
   const dirty = !sameFrontmatter(fm, saved.fm) || body !== saved.body;
   useEffect(() => {
     const draft = draftCache.get(key);
-    if (draft && !dirty) { leadRef.current = draft.lead; setFm(draft.fm); setBody(draft.body); }
+    if (draft && !dirty) {
+      leadRef.current = draft.lead;
+      setFm(draft.fm);
+      setBody(draft.body);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, dirty]);
 
   const save = (opts: { silent?: boolean } = {}) => {
     if (!dirty || savingRef.current || slug === null) return;
@@ -96,14 +106,17 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
         onSuccess: () => {
           setSaved({ fm, body });
           const latest = draftCache.get(key);
-          if (latest && sameFrontmatter(latest.fm, fm) && latest.body === body) draftCache.delete(key);
+          if (latest && sameFrontmatter(latest.fm, fm) && latest.body === body)
+            draftCache.delete(key);
           setConflict(false);
           if (!opts.silent) toast(t('saved'));
           // If the Hugo preview is open, reload it so the edit shows up.
           if (useHugo.getState().open) useHugo.getState().refresh();
         },
         onError: (e) => toast(`${t('saveFailed')}: ${e instanceof Error ? e.message : e}`),
-        onSettled: () => { savingRef.current = false; },
+        onSettled: () => {
+          savingRef.current = false;
+        },
       },
     );
   };
@@ -117,7 +130,7 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
     const timer = setTimeout(() => save({ silent: true }), autosaveDelay);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autosave, autosaveDelay, dirty, fm, body, write.isPending]);
+  }, [autosave, autosaveDelay, dirty, write.isPending, save]);
 
   // Ctrl/Cmd+S
   useEffect(() => {
@@ -130,11 +143,15 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fm, body, dirty]);
+  }, [save]);
 
   // Pull in external changes (file watcher) when there are no local edits.
   useEffect(() => {
-    if (dirty && post.data && (post.data.body !== leadRef.current + body || !sameFrontmatter(post.data.frontmatter, fm))) {
+    if (
+      dirty &&
+      post.data &&
+      (post.data.body !== leadRef.current + body || !sameFrontmatter(post.data.frontmatter, fm))
+    ) {
       setConflict(true);
       return;
     }
@@ -148,13 +165,16 @@ export function usePostEditor(lang: Lang, slug: string | null): PostEditor {
       setConflict(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post.data?.frontmatter, post.data?.body]);
+  }, [post.data?.frontmatter, post.data?.body, dirty, fm, post.data, body]);
 
   const discardLocal = () => {
     if (!post.data) return;
     const stripped = stripLead(post.data.body);
     leadRef.current = post.data.body.slice(0, post.data.body.length - stripped.length);
-    setFm(withDerivedMath(post.data.frontmatter, stripped)); setBody(stripped); setSaved({ fm: post.data.frontmatter, body: stripped }); setConflict(false);
+    setFm(withDerivedMath(post.data.frontmatter, stripped));
+    setBody(stripped);
+    setSaved({ fm: post.data.frontmatter, body: stripped });
+    setConflict(false);
   };
 
   return {

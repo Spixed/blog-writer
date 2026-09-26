@@ -1,5 +1,11 @@
+import type {
+  Lang,
+  PostContent,
+  PostMeta,
+  WorkspaceConfig,
+  WorkspaceInfo,
+} from '@blog-writer/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Lang, PostContent, PostMeta, WorkspaceConfig, WorkspaceInfo } from '@blog-writer/shared';
 import { api } from '../api/index.js';
 
 const qk = {
@@ -16,7 +22,10 @@ export function useConfig() {
 }
 
 export function useWorkspaces() {
-  return useQuery<WorkspaceInfo[]>({ queryKey: qk.workspaces, queryFn: () => api.listWorkspaces() });
+  return useQuery<WorkspaceInfo[]>({
+    queryKey: qk.workspaces,
+    queryFn: () => api.listWorkspaces(),
+  });
 }
 
 export function useActiveWorkspace() {

@@ -1,6 +1,5 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { parse as parseToml } from 'smol-toml';
 import type {
   AuthorInfo,
   Lang,
@@ -8,6 +7,7 @@ import type {
   QmojiEntry,
   WorkspaceConfig,
 } from '@blog-writer/shared';
+import { parse as parseToml } from 'smol-toml';
 
 const CONFIG_FILES = ['hugo.toml', 'config.toml'];
 
@@ -63,14 +63,12 @@ async function readTomlIfExists(p: string): Promise<Record<string, unknown> | nu
 export class Site {
   readonly root: string;
   private config: HugoConfig;
-  private configPath: string;
   private authorsCache: AuthorInfo[] | null = null;
   private qmojiCache: QmojiEntry[] | null = null;
 
-  private constructor(root: string, config: HugoConfig, configPath: string) {
+  private constructor(root: string, config: HugoConfig) {
     this.root = root;
     this.config = config;
-    this.configPath = configPath;
   }
 
   static async open(root: string): Promise<Site> {
@@ -78,7 +76,7 @@ export class Site {
     if (!cfgPath) throw new Error('未找到 Hugo 配置文件 (hugo.toml/config.toml)');
     const text = await fs.readFile(cfgPath, 'utf8');
     const config = parseConfig(text);
-    return new Site(path.resolve(root), config, cfgPath);
+    return new Site(path.resolve(root), config);
   }
 
   static async isValidSite(root: string): Promise<boolean> {
@@ -135,7 +133,8 @@ export class Site {
     if (this.authorsCache) return this.authorsCache;
     const rootFile = path.join(this.root, 'data', 'authors.toml');
     const themeFile = this.themeDir ? path.join(this.themeDir, 'data', 'authors.toml') : null;
-    const raw = (await readTomlIfExists(rootFile)) ?? (themeFile ? await readTomlIfExists(themeFile) : null);
+    const raw =
+      (await readTomlIfExists(rootFile)) ?? (themeFile ? await readTomlIfExists(themeFile) : null);
     const authors: AuthorInfo[] = [];
     if (raw) {
       for (const [key, value] of Object.entries(raw)) {
@@ -163,8 +162,11 @@ export class Site {
   async readQmoji(): Promise<QmojiEntry[]> {
     if (this.qmojiCache) return this.qmojiCache;
     const rootFile = path.join(this.root, 'data', 'qmoji', 'mapping.json');
-    const themeFile = this.themeDir ? path.join(this.themeDir, 'data', 'qmoji', 'mapping.json') : null;
-    const raw = (await readJsonIfExists(rootFile)) ?? (themeFile ? await readJsonIfExists(themeFile) : null);
+    const themeFile = this.themeDir
+      ? path.join(this.themeDir, 'data', 'qmoji', 'mapping.json')
+      : null;
+    const raw =
+      (await readJsonIfExists(rootFile)) ?? (themeFile ? await readJsonIfExists(themeFile) : null);
     const entries: QmojiEntry[] = [];
     if (Array.isArray(raw)) {
       for (const e of raw) {

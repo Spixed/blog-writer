@@ -13,7 +13,7 @@
 
 /** Map a root-relative media URL to the backend static endpoint. */
 export function resolveMediaUrl(url: string): string {
-  if (url.startsWith('/') && !url.startsWith('//')) return '/api/media/raw' + url;
+  if (url.startsWith('/') && !url.startsWith('//')) return `/api/media/raw${url}`;
   return url;
 }
 
@@ -21,5 +21,8 @@ const MEDIA_ATTR = /\b(src|poster)="(\/[^"\\/][^"]*)"/g;
 
 /** Rewrite root-relative src/poster attributes in rendered HTML. */
 export function resolveMediaHtml(html: string): string {
-  return html.replace(MEDIA_ATTR, (_m, attr: string, p: string) => attr + '="' + resolveMediaUrl(p) + '"');
+  return html.replace(
+    MEDIA_ATTR,
+    (_m, attr: string, p: string) => `${attr}="${resolveMediaUrl(p)}"`,
+  );
 }

@@ -1,7 +1,10 @@
-import { Node, mergeAttributes } from '@tiptap/core';
+import { mergeAttributes, Node } from '@tiptap/core';
 import type { CommandCtx } from './commands.js';
 
-export interface RubyOptions { text: string; rt: string }
+export interface RubyOptions {
+  text: string;
+  rt: string;
+}
 
 export const Ruby = Node.create({
   name: 'ruby',
@@ -15,12 +18,28 @@ export const Ruby = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'span[data-ruby]', contentElement: 'rb', getAttrs: (element) => ({ rt: (element as HTMLElement).querySelector('rt')?.textContent ?? '' }) }];
+    return [
+      {
+        tag: 'span[data-ruby]',
+        contentElement: 'rb',
+        getAttrs: (element) => ({
+          rt: (element as HTMLElement).querySelector('rt')?.textContent ?? '',
+        }),
+      },
+    ];
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    return ['span', mergeAttributes(HTMLAttributes, { 'data-ruby': '', class: 'ruby-atom' }),
-      ['ruby', {}, ['rb', {}, 0], ['rt', { contenteditable: 'false' }, String(node.attrs.rt ?? '')]]];
+    return [
+      'span',
+      mergeAttributes(HTMLAttributes, { 'data-ruby': '', class: 'ruby-atom' }),
+      [
+        'ruby',
+        {},
+        ['rb', {}, 0],
+        ['rt', { contenteditable: 'false' }, String(node.attrs.rt ?? '')],
+      ],
+    ];
   },
 
   addCommands() {
@@ -28,7 +47,11 @@ export const Ruby = Node.create({
       insertRuby:
         (attrs: RubyOptions) =>
         ({ commands }: CommandCtx) =>
-          commands.insertContent({ type: this.name, attrs: { rt: attrs.rt }, content: attrs.text ? [{ type: 'text', text: attrs.text }] : [] }),
+          commands.insertContent({
+            type: this.name,
+            attrs: { rt: attrs.rt },
+            content: attrs.text ? [{ type: 'text', text: attrs.text }] : [],
+          }),
     };
   },
 });

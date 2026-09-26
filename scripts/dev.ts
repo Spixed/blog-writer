@@ -43,9 +43,7 @@ if (host) {
   console.log(`[dev] exposing dev servers on ${shown}`);
 }
 
-const procs = commands.map((cmd) =>
-  spawn({ cmd, env, stdout: 'inherit', stderr: 'inherit' }),
-);
+const procs = commands.map((cmd) => spawn({ cmd, env, stdout: 'inherit', stderr: 'inherit' }));
 
 const killAll = () => {
   for (const p of procs) p.kill();

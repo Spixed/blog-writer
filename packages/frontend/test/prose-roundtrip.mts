@@ -11,9 +11,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { markdownToProse, proseToMarkdown } from '../src/render/prose.ts';
-import type { ProseNode } from '../src/render/prose.ts';
 import { extractFences } from '../src/render/fences.ts';
+import type { ProseNode } from '../src/render/prose.ts';
+import { markdownToProse, proseToMarkdown } from '../src/render/prose.ts';
 
 const POST_DIR = process.env.BLOG_ROOT
   ? path.join(process.env.BLOG_ROOT, 'content')
@@ -60,11 +60,17 @@ for (const p of posts) {
   for (const n of doc.content) counts[n.type] = (counts[n.type] ?? 0) + 1;
   const native = Object.entries(counts).filter(([k]) => k !== 'rawBlock');
   const nativeCount = native.reduce((a, [, v]) => a + v, 0);
-  assert(nativeCount > 0, `${p.lang}/${p.name} has editable prose blocks (${JSON.stringify(Object.fromEntries(native))})`);
+  assert(
+    nativeCount > 0,
+    `${p.lang}/${p.name} has editable prose blocks (${JSON.stringify(Object.fromEntries(native))})`,
+  );
   // Round trip is idempotent.
   assert(rt === proseToMarkdown(markdownToProse(rt)), `${p.lang}/${p.name} round trip is stable`);
   // No content is lost: text (incl. raw block sources) is preserved exactly.
-  assert(textOf(doc) === textOf(markdownToProse(rt)), `${p.lang}/${p.name} round trip preserves all text`);
+  assert(
+    textOf(doc) === textOf(markdownToProse(rt)),
+    `${p.lang}/${p.name} round trip preserves all text`,
+  );
 }
 
 /**
@@ -84,14 +90,19 @@ const byName = new Map(posts.map((p) => [p.name, p]));
   // qmoji-showcase: inline qq-emoji atoms + ruby + hl marks, no giant rawBlock.
   const p = byName.get('qmoji-showcase.md');
   if (p) {
-  const doc = markdownToProse(p.body);
-  const types: Record<string, number> = {};
-  for (const c of doc.content ?? []) deepTypes(c, types);
-  assert((types.qmoji ?? 0) > 0, `qmoji-showcase has ${types.qmoji ?? 0} inline qmoji atoms`);
-  assert((types.heading ?? 0) > 0, `qmoji-showcase splits into ${types.heading ?? 0} headings (not one rawBlock)`);
-  assert((types.paragraph ?? 0) > 0, `qmoji-showcase has ${types.paragraph ?? 0} paragraphs`);
-  const giant = (doc.content ?? []).filter((n) => n.type === 'rawBlock' && String(n.attrs?.source ?? '').split('\n').length > 20);
-  assert(giant.length === 0, `qmoji-showcase has no >20-line rawBlock (got ${giant.length})`);
+    const doc = markdownToProse(p.body);
+    const types: Record<string, number> = {};
+    for (const c of doc.content ?? []) deepTypes(c, types);
+    assert((types.qmoji ?? 0) > 0, `qmoji-showcase has ${types.qmoji ?? 0} inline qmoji atoms`);
+    assert(
+      (types.heading ?? 0) > 0,
+      `qmoji-showcase splits into ${types.heading ?? 0} headings (not one rawBlock)`,
+    );
+    assert((types.paragraph ?? 0) > 0, `qmoji-showcase has ${types.paragraph ?? 0} paragraphs`);
+    const giant = (doc.content ?? []).filter(
+      (n) => n.type === 'rawBlock' && String(n.attrs?.source ?? '').split('\n').length > 20,
+    );
+    assert(giant.length === 0, `qmoji-showcase has no >20-line rawBlock (got ${giant.length})`);
   }
 }
 
@@ -99,27 +110,40 @@ const byName = new Map(posts.map((p) => [p.name, p]));
   // school.md: GFM tables are native TipTap tables.
   const p = byName.get('school.md');
   if (p) {
-  const types: Record<string, number> = {};
-  for (const c of markdownToProse(p.body).content ?? []) deepTypes(c, types);
-  assert((types.table ?? 0) >= 1, `school.md has ${types.table ?? 0} native table(s)`);
-  assert((types.tableCell ?? 0) > 0, `school.md has ${types.tableCell ?? 0} table cells`);
+    const types: Record<string, number> = {};
+    for (const c of markdownToProse(p.body).content ?? []) deepTypes(c, types);
+    assert((types.table ?? 0) >= 1, `school.md has ${types.table ?? 0} native table(s)`);
+    assert((types.tableCell ?? 0) > 0, `school.md has ${types.tableCell ?? 0} table cells`);
   }
 }
 
 {
-  const source = '| Heading | Code | Escaped |\n| --- | --- | --- |\n| first<br>second | `<br>` literal | \\<br> literal |';
+  const source =
+    '| Heading | Code | Escaped |\n| --- | --- | --- |\n| first<br>second | `<br>` literal | \\<br> literal |';
   const doc = markdownToProse(source);
   const table = doc.content.find((node) => node.type === 'table');
   const bodyCells = table?.content?.[1]?.content ?? [];
   const firstLine = bodyCells[0]?.content?.[0]?.content ?? [];
   const codeLine = bodyCells[1]?.content?.[0]?.content ?? [];
   const escapedLine = bodyCells[2]?.content?.[0]?.content ?? [];
-  assert(firstLine.some((node) => node.type === 'hardBreak'), 'table <br> becomes an editable line break');
-  assert(codeLine.every((node) => node.type !== 'hardBreak'), 'code span <br> stays literal');
-  assert(escapedLine.every((node) => node.type !== 'hardBreak'), 'escaped <br> stays literal');
+  assert(
+    firstLine.some((node) => node.type === 'hardBreak'),
+    'table <br> becomes an editable line break',
+  );
+  assert(
+    codeLine.every((node) => node.type !== 'hardBreak'),
+    'code span <br> stays literal',
+  );
+  assert(
+    escapedLine.every((node) => node.type !== 'hardBreak'),
+    'escaped <br> stays literal',
+  );
   const roundTrip = proseToMarkdown(doc);
   assert(roundTrip.includes('first<br>second'), 'table line break serializes as <br>');
-  assert(roundTrip === proseToMarkdown(markdownToProse(roundTrip)), 'table line break round trip is stable');
+  assert(
+    roundTrip === proseToMarkdown(markdownToProse(roundTrip)),
+    'table line break round trip is stable',
+  );
 }
 
 {
@@ -128,14 +152,20 @@ const byName = new Map(posts.map((p) => [p.name, p]));
   // happens in extractFences (a pure function), so assert it directly.
   const p = byName.get('process.md');
   if (p) {
-  const types: Record<string, number> = {};
-  for (const c of markdownToProse(p.body).content ?? []) deepTypes(c, types);
-  assert((types.rawBlock ?? 0) > 0, `process.md keeps its list-nested fences as verbatim rawBlock (${types.rawBlock ?? 0})`);
-  const fr = extractFences(p.body);
-  const first = fr.fences.find((f) => f.lang === 'powershell');
-  const body = String(first?.code ?? '').split('\n').filter((l) => l.trim())[0] ?? '';
-  const indent = body.length - body.trimStart().length;
-  assert(indent === 3, `nested fence body dedented to 3 spaces like Hugo (got ${indent})`);
+    const types: Record<string, number> = {};
+    for (const c of markdownToProse(p.body).content ?? []) deepTypes(c, types);
+    assert(
+      (types.rawBlock ?? 0) > 0,
+      `process.md keeps its list-nested fences as verbatim rawBlock (${types.rawBlock ?? 0})`,
+    );
+    const fr = extractFences(p.body);
+    const first = fr.fences.find((f) => f.lang === 'powershell');
+    const body =
+      String(first?.code ?? '')
+        .split('\n')
+        .filter((l) => l.trim())[0] ?? '';
+    const indent = body.length - body.trimStart().length;
+    assert(indent === 3, `nested fence body dedented to 3 spaces like Hugo (got ${indent})`);
   }
 }
 

@@ -4,8 +4,9 @@
  * (`orange` / `yellow` / `blue` / `green`); the exact span the theme emits is
  * reproduced in `renderHTML`, so the editor shows the same highlight as the blog.
  */
-import { Mark, mergeAttributes } from '@tiptap/core';
+
 import { HL_COLOR_MAP } from '@blog-writer/shared';
+import { Mark, mergeAttributes } from '@tiptap/core';
 import type { CommandCtx } from './commands.js';
 
 export const HL_COLORS = Object.keys(HL_COLOR_MAP);
@@ -22,10 +23,13 @@ export const Hl = Mark.create({
         parseHTML: (el) => {
           const m = /color:\s*(#[0-9a-fA-F]{3,6})/.exec(el.getAttribute('style') ?? '');
           if (!m) return '';
-          const found = Object.entries(HL_COLOR_MAP).find(([, hex]) => hex.toLowerCase() === m[1]!.toLowerCase());
+          const found = Object.entries(HL_COLOR_MAP).find(
+            ([, hex]) => hex.toLowerCase() === m[1]!.toLowerCase(),
+          );
           return found ? found[0] : '';
         },
-        renderHTML: (attrs) => (attrs.color ? { style: `color: ${HL_COLOR_MAP[String(attrs.color)] ?? '#2979FF'}` } : {}),
+        renderHTML: (attrs) =>
+          attrs.color ? { style: `color: ${HL_COLOR_MAP[String(attrs.color)] ?? '#2979FF'}` } : {},
       },
     };
   },
@@ -37,7 +41,10 @@ export const Hl = Mark.create({
   renderHTML({ HTMLAttributes }) {
     return [
       'span',
-      mergeAttributes(HTMLAttributes, { class: 'hl-shortcode', style: `font-weight: bold;${HTMLAttributes.style ?? ''}` }),
+      mergeAttributes(HTMLAttributes, {
+        class: 'hl-shortcode',
+        style: `font-weight: bold;${HTMLAttributes.style ?? ''}`,
+      }),
       0,
     ];
   },

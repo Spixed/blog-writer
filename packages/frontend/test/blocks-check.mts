@@ -10,8 +10,8 @@
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { renderSource } from '../src/render/md.js';
 import { editBlockText, replaceBlock, simpleTextBlock, splitBlocks } from '../src/render/blocks.js';
+import { renderSource } from '../src/render/md.js';
 
 const BLOG = process.env.BLOG_ROOT ?? path.resolve(import.meta.dir, '../../../fixtures/blog');
 
@@ -33,7 +33,9 @@ async function readBodies(): Promise<string[]> {
 }
 
 async function readQmoji() {
-  return JSON.parse(await fs.readFile(path.join(BLOG, 'themes/polymer/data/qmoji/mapping.json'), 'utf8'));
+  return JSON.parse(
+    await fs.readFile(path.join(BLOG, 'themes/polymer/data/qmoji/mapping.json'), 'utf8'),
+  );
 }
 
 let failed = 0;
@@ -55,7 +57,10 @@ for (let bi = 0; bi < bodies.length; bi++) {
   const blocks = splitBlocks(body);
 
   // 1. Contiguous tiling.
-  let ok = blocks.length > 0 && blocks[0].start === 0 && blocks[blocks.length - 1].end === body.split('\n').length;
+  let ok =
+    blocks.length > 0 &&
+    blocks[0].start === 0 &&
+    blocks[blocks.length - 1].end === body.split('\n').length;
   for (let i = 1; i < blocks.length; i++) {
     if (blocks[i].start !== blocks[i - 1].end) ok = false;
   }
@@ -100,7 +105,10 @@ for (let bi = 0; bi < bodies.length; bi++) {
       }
     }
   }
-  assert(noop === blocks.length, `post #${bi}: every block is a byte-exact no-op edit (${simple} simple-text blocks)`);
+  assert(
+    noop === blocks.length,
+    `post #${bi}: every block is a byte-exact no-op edit (${simple} simple-text blocks)`,
+  );
   totalBlocks += blocks.length;
 }
 
@@ -113,9 +121,24 @@ console.log(`blocks-check: ${bodies.length} posts, ${totalBlocks} blocks`);
   // Each case locates the block containing `find` and asserts the exact source
   // lines it spans, so a fused heading/list block fails loudly.
   const cases: { name: string; src: string; find: string; want: string }[] = [
-    { name: 'ATX heading after a list is its own block', src: '- a\n- b\n# H\n', find: '# H', want: '# H' },
-    { name: 'ATX heading right after a tight list item', src: '- a\n# H\n', find: '# H', want: '# H' },
-    { name: 'a GFM table stays a single block', src: '| a | b |\n|---|---|\n| 1 | 2 |\n', find: '| 1 | 2 |', want: '| a | b |\n|---|---|\n| 1 | 2 |' },
+    {
+      name: 'ATX heading after a list is its own block',
+      src: '- a\n- b\n# H\n',
+      find: '# H',
+      want: '# H',
+    },
+    {
+      name: 'ATX heading right after a tight list item',
+      src: '- a\n# H\n',
+      find: '# H',
+      want: '# H',
+    },
+    {
+      name: 'a GFM table stays a single block',
+      src: '| a | b |\n|---|---|\n| 1 | 2 |\n',
+      find: '| 1 | 2 |',
+      want: '| a | b |\n|---|---|\n| 1 | 2 |',
+    },
   ];
   for (const c of cases) {
     const lines = c.src.split('\n');
@@ -123,7 +146,10 @@ console.log(`blocks-check: ${bodies.length} posts, ${totalBlocks} blocks`);
     const at = lines.indexOf(c.find);
     const b = blocks.find((x) => x.start <= at && at < x.end);
     const got = b ? lines.slice(b.start, b.end).join('\n') : '<none>';
-    assert(got === c.want, `${c.name}: block is ${JSON.stringify(got)}, want ${JSON.stringify(c.want)}`);
+    assert(
+      got === c.want,
+      `${c.name}: block is ${JSON.stringify(got)}, want ${JSON.stringify(c.want)}`,
+    );
   }
 }
 

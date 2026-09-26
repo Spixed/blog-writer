@@ -8,11 +8,11 @@
  * in WysiwygEditor, which renders complex blocks through the same pipeline.
  */
 import { useEffect, useRef } from 'react';
-import { initRenderWorker, useRender } from '../render/useRender.js';
-import { adjustDropCap, animateLottie, typesetMath } from '../render/external-scripts.js';
-import { resolveMediaHtml } from '../render/media-url.js';
 import { useConfig } from '../hooks/queries.js';
 import { useResolvedTheme } from '../hooks/useResolvedTheme.js';
+import { adjustDropCap, animateLottie, typesetMath } from '../render/external-scripts.js';
+import { resolveMediaHtml } from '../render/media-url.js';
+import { initRenderWorker, useRender } from '../render/useRender.js';
 
 export interface PreviewPaneProps {
   source: string | undefined;
@@ -44,20 +44,20 @@ export function PreviewPane({ source, scrollerRef, onRendered }: PreviewPaneProp
   useEffect(() => {
     const el = rootRef.current;
     if (el && hasMath) typesetMath(el);
-  }, [html, hasMath]);
+  }, [hasMath]);
 
   // Size the drop cap exactly like the theme's main.js, after layout settles.
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
     adjustDropCap(el);
-  }, [html]);
+  }, []);
 
   // Animate lottie qmoji exactly like the theme's main.js.
   useEffect(() => {
     const el = rootRef.current;
     if (el) return animateLottie(el);
-  }, [html]);
+  }, []);
 
   return (
     <div
@@ -72,7 +72,14 @@ export function PreviewPane({ source, scrollerRef, onRendered }: PreviewPaneProp
         dangerouslySetInnerHTML={{ __html: resolveMediaHtml(html) }}
       />
       {loading && <div className="preview-loading">rendering…</div>}
-      {error && <div className="preview-error" role="alert">{error} <button type="button" className="icon-btn" onClick={retry}>重新渲染</button></div>}
+      {error && (
+        <div className="preview-error" role="alert">
+          {error}{' '}
+          <button type="button" className="icon-btn" onClick={retry}>
+            重新渲染
+          </button>
+        </div>
+      )}
     </div>
   );
 }

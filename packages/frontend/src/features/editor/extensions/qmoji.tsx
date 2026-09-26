@@ -7,20 +7,19 @@
  * Block-mode qmoji uses the same atom with a full-width presentation, keeping
  * surrounding prose independently editable. The toolbar edits name and mode.
  */
+
+import { mergeAttributes, Node } from '@tiptap/core';
+import { type NodeViewProps, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Node, mergeAttributes } from '@tiptap/core';
-import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
-import { renderNow, useRenderWorkerRevision } from '../../../render/useRender.js';
 import { animateLottie } from '../../../render/external-scripts.js';
-import type { CommandCtx } from './commands.js';
 import { resolveMediaHtml } from '../../../render/media-url.js';
+import { renderNow, useRenderWorkerRevision } from '../../../render/useRender.js';
+import type { CommandCtx } from './commands.js';
 
 /** Rebuild the shortcode source a qmoji node stands for. */
 export function qmojiSource(name: string, mode: string): string {
   const clean = String(name ?? '').replace(/"/g, '');
-  return mode === 'block'
-    ? `{{< qq-emoji "${clean}" "block" >}}`
-    : `{{< qq-emoji "${clean}" >}}`;
+  return mode === 'block' ? `{{< qq-emoji "${clean}" "block" >}}` : `{{< qq-emoji "${clean}" >}}`;
 }
 
 export const Qmoji = Node.create({
@@ -65,29 +64,32 @@ function QmojiView({ node, selected }: NodeViewProps) {
   const source = qmojiSource(name, mode);
   const [html, setHtml] = useState('');
   const [error, setError] = useState('');
-  const [attempt, setAttempt] = useState(0);
+  const [_attempt, setAttempt] = useState(0);
   const bodyRef = useRef<HTMLSpanElement>(null);
   // The emoji mapping reaches the render worker from the server config; if the
   // editor mounted before it arrived the first paint shows a placeholder, so
   // re-render once the config is in.
-  const workerRevision = useRenderWorkerRevision();
+  const _workerRevision = useRenderWorkerRevision();
 
   // Re-render only when this emoji's own source changes.
   useEffect(() => {
     let cancelled = false;
     renderNow(source).then((msg) => {
-      if (!cancelled) { setHtml(msg.html); setError(msg.error ?? ''); }
+      if (!cancelled) {
+        setHtml(msg.html);
+        setError(msg.error ?? '');
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [source, workerRevision, attempt]);
+  }, [source]);
 
   // Lottie emoji animate themselves; static ones are just <img>.
   useEffect(() => {
     const el = bodyRef.current;
     if (el) return animateLottie(el);
-  }, [html]);
+  }, []);
 
   // The shortcode renderer intentionally returns a paragraph/container for
   // normal Markdown output. That wrapper is invalid inside an inline NodeView
@@ -105,7 +107,21 @@ function QmojiView({ node, selected }: NodeViewProps) {
       contentEditable={false}
     >
       <span ref={bodyRef} dangerouslySetInnerHTML={{ __html: resolveMediaHtml(safeHtml) }} />
-      {!html && (error ? <button type="button" className="qmoji-pending" title={error} onClick={() => setAttempt((n) => n + 1)}>重试 /{name}</button> : <span className="qmoji-pending" aria-label={`Qmoji ${name}`}>/{name}</span>)}
+      {!html &&
+        (error ? (
+          <button
+            type="button"
+            className="qmoji-pending"
+            title={error}
+            onClick={() => setAttempt((n) => n + 1)}
+          >
+            重试 /{name}
+          </button>
+        ) : (
+          <span className="qmoji-pending" aria-label={`Qmoji ${name}`}>
+            /{name}
+          </span>
+        ))}
     </NodeViewWrapper>
   );
 }

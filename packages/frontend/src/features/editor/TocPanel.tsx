@@ -9,9 +9,10 @@
  * each heading node is kept so a click can seek the caret and scroll the real
  * DOM node into view without any id plumbing.
  */
-import { useEffect, useRef, useState } from 'react';
-import { ListTree, X } from 'lucide-react';
+
 import type { Editor } from '@tiptap/react';
+import { ListTree, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../i18n/useI18n.js';
 
 export interface TocHeading {
@@ -118,13 +119,13 @@ export function TocPanel({
       scroller.removeEventListener('scroll', onScroll);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [editor, headings, scrollerRef]);
+  }, [editor, scrollerRef]);
 
   const jump = (heading: TocHeading) => {
     // The list can go stale for one frame while a document replacement is in
     // flight — verify the target is still a heading before seeking.
     const node = editor.state.doc.nodeAt(heading.pos);
-    if (!node || node.type.name !== 'heading') return;
+    if (node?.type.name !== 'heading') return;
     // focus() defaults to scrollIntoView: true, which dispatches an instant
     // scroll-to-selection on the next frame — it would cancel the smooth
     // animation below (and leave a heading below the viewport stuck at the
@@ -178,13 +179,15 @@ function TocTree({
         <li key={node.pos}>
           <button
             type="button"
-            className={'toc-link' + (active === node.pos ? ' active' : '')}
+            className={`toc-link${active === node.pos ? ' active' : ''}`}
             title={node.text}
             onClick={() => jump(node)}
           >
             {node.text}
           </button>
-          {node.children.length > 0 && <TocTree nodes={node.children} active={active} jump={jump} />}
+          {node.children.length > 0 && (
+            <TocTree nodes={node.children} active={active} jump={jump} />
+          )}
         </li>
       ))}
     </ul>

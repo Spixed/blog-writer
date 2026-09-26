@@ -6,9 +6,10 @@
  * Positions are resolved through `view.posAtCoords` and the block DOM rect, so
  * the handle tracks blocks of any height (including raw-block atoms).
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Editor } from '@tiptap/react';
+
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
+import type { Editor } from '@tiptap/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createDragScroller } from './drag-autoscroll.js';
 
 const HANDLE_W = 48;
@@ -28,7 +29,7 @@ interface DropAt {
   height: number;
   pos: number;
   after: boolean;
-}/** Resolve the top-level block (and its DOM rect) at viewport coordinates. */
+} /** Resolve the top-level block (and its DOM rect) at viewport coordinates. */
 function blockAt(editor: Editor, x: number, y: number) {
   const view = editor.view;
   const bounds = view.dom.getBoundingClientRect();
@@ -138,11 +139,14 @@ export function BlockHandle({
     return rects;
   }, [editor]);
 
-  const toLocalY = useCallback((viewportTop: number) => {
-    const sc = scroller.current;
-    if (!sc) return viewportTop;
-    return viewportTop - sc.getBoundingClientRect().top + sc.scrollTop;
-  }, [scroller]);
+  const toLocalY = useCallback(
+    (viewportTop: number) => {
+      const sc = scroller.current;
+      if (!sc) return viewportTop;
+      return viewportTop - sc.getBoundingClientRect().top + sc.scrollTop;
+    },
+    [scroller],
+  );
 
   const targetAt = (x: number, y: number): DropAt | null => {
     const found = blockAt(editor, x, y);
@@ -150,7 +154,10 @@ export function BlockHandle({
     const doc = editor.state.doc;
     let index = -1;
     for (let pos = 0, i = 0; i < doc.childCount; i++) {
-      if (pos === found.pos) { index = i; break; }
+      if (pos === found.pos) {
+        index = i;
+        break;
+      }
       pos += doc.child(i).nodeSize;
     }
     if (index < 0) return null;
@@ -196,10 +203,13 @@ export function BlockHandle({
   useEffect(() => {
     const sc = scroller.current;
     if (!sc) return;
-    const scrollerCtl = createDragScroller(() => scroller.current, () => {
-      // The page scrolled under a stationary pointer: re-derive the line.
-      if (dragFrom.current !== null) setDrop(targetAt(scrollerCtl.x, scrollerCtl.y));
-    });
+    const scrollerCtl = createDragScroller(
+      () => scroller.current,
+      () => {
+        // The page scrolled under a stationary pointer: re-derive the line.
+        if (dragFrom.current !== null) setDrop(targetAt(scrollerCtl.x, scrollerCtl.y));
+      },
+    );
     const onDragOver = (e: DragEvent) => {
       if (dragFrom.current === null) return;
       e.preventDefault();
@@ -224,10 +234,8 @@ export function BlockHandle({
       const targetNode = view.state.doc.nodeAt(target.pos);
       if (!node || !targetNode) return;
       // No-op when the block lands where it already is.
-      const insertAt =
-        target.after ? target.pos + targetNode.nodeSize : target.pos;
-      if (insertAt === from || (target.after && insertAt === from + node.nodeSize))
-        return;
+      const insertAt = target.after ? target.pos + targetNode.nodeSize : target.pos;
+      if (insertAt === from || (target.after && insertAt === from + node.nodeSize)) return;
       tr.delete(from, from + node.nodeSize);
       const to = tr.mapping.map(insertAt);
       tr.insert(to, node);
@@ -251,7 +259,7 @@ export function BlockHandle({
       sc.removeEventListener('dragend', onDragEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, scroller, toLocal]);
+  }, [editor, scroller, targetAt]);
 
   const onAdd = () => {
     if (!handle) return;

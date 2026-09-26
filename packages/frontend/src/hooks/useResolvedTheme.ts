@@ -3,7 +3,9 @@ import { useUI } from '../store/ui.js';
 
 export function useResolvedTheme(): 'light' | 'dark' {
   const preference = useUI((state) => state.theme);
-  const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const [systemDark, setSystemDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+  );
   useEffect(() => {
     const query = window.matchMedia('(prefers-color-scheme: dark)');
     const update = () => setSystemDark(query.matches);

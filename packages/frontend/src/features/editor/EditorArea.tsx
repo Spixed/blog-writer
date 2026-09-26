@@ -6,21 +6,22 @@
  * Per-language state (front matter, body, dirty, autosave) lives in
  * usePostEditor *above* the mode switch, so changing modes never drops edits.
  */
-import { useState } from 'react';
-import { Files, FilePenLine, ListTree, Save } from 'lucide-react';
+
 import type { Frontmatter, Lang } from '@blog-writer/shared';
 import { defaultFrontmatter } from '@blog-writer/shared';
-import { EDITOR_MODES, useUI } from '../../store/ui.js';
-import { usePostEditor } from './usePostEditor.js';
-import type { PostEditor } from './usePostEditor.js';
-import { WysiwygEditor } from './WysiwygEditor.js';
-import { FrontmatterPanel } from './FrontmatterPanel.js';
+import { FilePenLine, Files, ListTree, Save } from 'lucide-react';
+import { useState } from 'react';
 import { PreviewPane } from '../../components/PreviewPane.js';
-import { usePost, useWritePost } from '../../hooks/queries.js';
-import { useI18n } from '../../i18n/useI18n.js';
-import { useSyncScroll } from '../../hooks/useSyncScroll.js';
 import { useToasts } from '../../components/ui.js';
+import { usePost, useWritePost } from '../../hooks/queries.js';
+import { useSyncScroll } from '../../hooks/useSyncScroll.js';
+import { useI18n } from '../../i18n/useI18n.js';
+import { EDITOR_MODES, useUI } from '../../store/ui.js';
+import { FrontmatterPanel } from './FrontmatterPanel.js';
 import { MarkdownSourceEditor } from './MarkdownSourceEditor.js';
+import type { PostEditor } from './usePostEditor.js';
+import { usePostEditor } from './usePostEditor.js';
+import { WysiwygEditor } from './WysiwygEditor.js';
 
 const OTHER_LANG: Record<Lang, Lang> = { zh: 'en', en: 'zh' };
 const LANG_LABEL: Record<Lang, string> = { zh: '中文', en: 'English' };
@@ -64,7 +65,11 @@ function EditorContent({ lang, slug }: { lang: Lang; slug: string }) {
   return (
     <div className="editor-area">
       <div className="editor-header">
-        <div className="document-heading"><span className="document-eyebrow">{lang === 'zh' ? '正在写作' : 'WRITING'}</span><strong>{String(editors[lang].fm.title || slug)}</strong><span className="slug">post/{slug}.md</span></div>
+        <div className="document-heading">
+          <span className="document-eyebrow">{lang === 'zh' ? '正在写作' : 'WRITING'}</span>
+          <strong>{String(editors[lang].fm.title || slug)}</strong>
+          <span className="slug">post/{slug}.md</span>
+        </div>
         <div style={{ flex: 1 }} />
         <div className="seg mode-seg" title={t('modeHint')}>
           {EDITOR_MODES.map((m) => (
@@ -72,14 +77,14 @@ function EditorContent({ lang, slug }: { lang: Lang; slug: string }) {
               key={m}
               className={editorMode === m ? 'active' : ''}
               onClick={() => setEditorMode(m)}
-              title={t('modeHint.' + m)}
+              title={t(`modeHint.${m}`)}
             >
-              {t('mode.' + m)}
+              {t(`mode.${m}`)}
             </button>
           ))}
         </div>
         <button
-          className={'icon-btn ' + (fmOpen ? 'primary' : '')}
+          className={`icon-btn ${fmOpen ? 'primary' : ''}`}
           onClick={toggleFm}
           title={t('fmPanel')}
         >
@@ -87,12 +92,20 @@ function EditorContent({ lang, slug }: { lang: Lang; slug: string }) {
         </button>
         {autosave && (
           <label className="autosave-delay" title="自动保存延迟">
-            <input aria-label="自动保存延迟" type="number" min={250} max={10000} step={250}
-              value={autosaveDelay} onChange={(e) => setAutosaveDelay(Number(e.target.value) || 1000)} /> ms
+            <input
+              aria-label="自动保存延迟"
+              type="number"
+              min={250}
+              max={10000}
+              step={250}
+              value={autosaveDelay}
+              onChange={(e) => setAutosaveDelay(Number(e.target.value) || 1000)}
+            />{' '}
+            ms
           </label>
         )}
         <button
-          className={'icon-btn autosave-toggle ' + (autosave ? 'primary' : '')}
+          className={`icon-btn autosave-toggle ${autosave ? 'primary' : ''}`}
           aria-pressed={autosave}
           onClick={() => setAutosave(!autosave)}
           title={t('autosaveToggle')}
@@ -179,19 +192,21 @@ function WysiwygPane({
         {!editor.post?.frontmatterRaw && <span className="badge draft">{t('noFrontmatter')}</span>}
         <div style={{ flex: 1 }} />
         <button
-          className={'icon-btn toc-toggle ' + (tocOpen ? 'primary' : '')}
+          className={`icon-btn toc-toggle ${tocOpen ? 'primary' : ''}`}
           aria-pressed={tocOpen}
           onClick={toggleToc}
           title={t('tocPanel')}
         >
-          <ListTree size={15} aria-hidden="true" />{t('tocPanel')}
+          <ListTree size={15} aria-hidden="true" />
+          {t('tocPanel')}
         </button>
         <button
           className="icon-btn primary"
           disabled={!editor.dirty || editor.saving}
           onClick={() => editor.save()}
         >
-          <Save size={15} aria-hidden="true" />{editor.saving ? t('saving') : t('save')}
+          <Save size={15} aria-hidden="true" />
+          {editor.saving ? t('saving') : t('save')}
         </button>
       </PaneHead>
       <WysiwygEditor
@@ -200,7 +215,15 @@ function WysiwygPane({
         scrollKey={`${lang}:${slug}`}
         scrollRef={register ? register(lang) : undefined}
       />
-      {editor.conflict && <div className="editor-conflict" role="alert">文件已被外部修改。<button type="button" onClick={editor.discardLocal}>载入外部版本</button><span>保留本地修改并手动保存</span></div>}
+      {editor.conflict && (
+        <div className="editor-conflict" role="alert">
+          文件已被外部修改。
+          <button type="button" onClick={editor.discardLocal}>
+            载入外部版本
+          </button>
+          <span>保留本地修改并手动保存</span>
+        </div>
+      )}
       {fmOpen && (
         <FrontmatterPanel
           lang={lang}
@@ -257,7 +280,8 @@ function SplitPane({
           disabled={!editor.dirty || editor.saving}
           onClick={() => editor.save()}
         >
-          <Save size={15} aria-hidden="true" />{editor.saving ? t('saving') : t('save')}
+          <Save size={15} aria-hidden="true" />
+          {editor.saving ? t('saving') : t('save')}
         </button>
       </PaneHead>
       <div className="split-pane" style={{ '--split': ratio } as React.CSSProperties}>
@@ -279,7 +303,15 @@ function SplitPane({
           />
         </div>
       </div>
-      {editor.conflict && <div className="editor-conflict" role="alert">文件已被外部修改。<button type="button" onClick={editor.discardLocal}>载入外部版本</button><span>保留本地修改并手动保存</span></div>}
+      {editor.conflict && (
+        <div className="editor-conflict" role="alert">
+          文件已被外部修改。
+          <button type="button" onClick={editor.discardLocal}>
+            载入外部版本
+          </button>
+          <span>保留本地修改并手动保存</span>
+        </div>
+      )}
       {fmOpen && (
         <FrontmatterPanel
           lang={lang}
@@ -338,7 +370,9 @@ function MissingPane({ lang, slug }: { lang: Lang; slug: string }) {
 
   return (
     <div className="empty-state">
-      <div className="glyph"><Files size={30} strokeWidth={1.5} aria-hidden="true" /></div>
+      <div className="glyph">
+        <Files size={30} strokeWidth={1.5} aria-hidden="true" />
+      </div>
       <div>{t('missingVersion')}</div>
       <button className="icon-btn primary" disabled={create.isPending} onClick={createVersion}>
         {create.isPending ? t('creating') : t('createVersion')}
@@ -371,7 +405,9 @@ function EmptyState() {
   return (
     <div className="editor-area">
       <div className="empty-state">
-        <div className="glyph"><FilePenLine size={30} strokeWidth={1.5} aria-hidden="true" /></div>
+        <div className="glyph">
+          <FilePenLine size={30} strokeWidth={1.5} aria-hidden="true" />
+        </div>
         <div>{t('selectPostHint')}</div>
       </div>
     </div>

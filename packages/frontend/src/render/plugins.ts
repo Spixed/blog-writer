@@ -84,7 +84,7 @@ export function tasklistPlugin(md: MarkdownIt): void {
     for (let i = 0; i < tokens.length; i++) {
       if (tokens[i].type !== 'list_item_open') continue;
       const inline = tokens[i + 2];
-      if (!inline || inline.type !== 'inline' || !inline.children?.length) continue;
+      if (inline?.type !== 'inline' || !inline.children?.length) continue;
       const first = inline.children[0];
       if (first.type !== 'text') continue;
       const m = /^\[([ xX])\]\s*/.exec(first.content);

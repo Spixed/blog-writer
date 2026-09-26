@@ -3,7 +3,7 @@
 // -> dump -> assert byte-identical output.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { parseFile, dumpFile, dumpFrontmatter } from '../src/frontmatter-io.js';
+import { dumpFile, parseFile } from '../src/frontmatter-io.js';
 
 // BLOG_ROOT overrides (bun auto-loads .env); otherwise the committed fixture.
 const BLOG = process.env.BLOG_ROOT ?? path.resolve(import.meta.dir, '../../fixtures/blog');

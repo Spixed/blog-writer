@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
 import { ExternalLink, RefreshCw, Square, X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useConfig } from '../hooks/queries.js';
+import { useI18n } from '../i18n/useI18n.js';
 import { useHugo } from '../store/hugo.js';
 import { useUI } from '../store/ui.js';
-import { useI18n } from '../i18n/useI18n.js';
 
 /**
  * In-app Hugo preview: an iframe of the live `hugo server` output plus a
@@ -34,14 +34,25 @@ export function HugoPanel() {
       if (!parent) return;
       const bounds = parent.getBoundingClientRect();
       setPanelPos({
-        x: Math.min(Math.max(0, bounds.width - 120), Math.max(0, event.clientX - bounds.left - drag.current.dx)),
-        y: Math.min(Math.max(0, bounds.height - 48), Math.max(0, event.clientY - bounds.top - drag.current.dy)),
+        x: Math.min(
+          Math.max(0, bounds.width - 120),
+          Math.max(0, event.clientX - bounds.left - drag.current.dx),
+        ),
+        y: Math.min(
+          Math.max(0, bounds.height - 48),
+          Math.max(0, event.clientY - bounds.top - drag.current.dy),
+        ),
       });
     };
-    const up = () => { drag.current = null; };
+    const up = () => {
+      drag.current = null;
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
   }, [setPanelPos]);
 
   const defaultLang = config.data?.defaultContentLanguage ?? 'zh';
@@ -63,19 +74,31 @@ export function HugoPanel() {
   useEffect(() => {
     const el = consoleRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [lines]);
+  }, []);
 
   const iframeSrc = url ? `${url.replace(/\/$/, '')}${previewPath}?bw=${refreshKey}` : null;
 
   return (
-    <div className="hugo-panel" ref={panelRef} style={panelPos ? { left: panelPos.x, top: panelPos.y, right: 'auto', bottom: 'auto' } : undefined}>
-      <div className="hugo-header" onPointerDown={(event) => {
-        if (window.innerWidth <= 640 || (event.target as HTMLElement).closest('button,a')) return;
-        const bounds = panelRef.current?.getBoundingClientRect();
-        if (bounds) drag.current = { dx: event.clientX - bounds.left, dy: event.clientY - bounds.top };
-      }}>
+    <div
+      className="hugo-panel"
+      ref={panelRef}
+      style={
+        panelPos ? { left: panelPos.x, top: panelPos.y, right: 'auto', bottom: 'auto' } : undefined
+      }
+    >
+      <div
+        className="hugo-header"
+        onPointerDown={(event) => {
+          if (window.innerWidth <= 640 || (event.target as HTMLElement).closest('button,a')) return;
+          const bounds = panelRef.current?.getBoundingClientRect();
+          if (bounds)
+            drag.current = { dx: event.clientX - bounds.left, dy: event.clientY - bounds.top };
+        }}
+      >
         <span className="hugo-title">{t('hugoPanelTitle')}</span>
-        <span className={`badge ${status === 'running' ? 'featured' : status === 'error' ? 'draft' : ''}`}>
+        <span
+          className={`badge ${status === 'running' ? 'featured' : status === 'error' ? 'draft' : ''}`}
+        >
           {statusText}
         </span>
         {url && (
@@ -88,17 +111,23 @@ export function HugoPanel() {
           <RefreshCw size={16} aria-hidden="true" />
         </button>
         {url && (
-          <a
-            className="icon-btn"
-            href={iframeSrc ?? '#'}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <ExternalLink size={15} aria-hidden="true" />{t('openInBrowser')}
+          <a className="icon-btn" href={iframeSrc ?? '#'} target="_blank" rel="noreferrer">
+            <ExternalLink size={15} aria-hidden="true" />
+            {t('openInBrowser')}
           </a>
         )}
-        <button className="icon-btn danger" onClick={stopServer} title="停止 Hugo 服务并关闭窗口"><Square size={14} aria-hidden="true" />停止服务</button>
-        <button className="icon-btn" onClick={closePanel} title={t('close')} aria-label={t('close')}><X size={17} aria-hidden="true" /></button>
+        <button className="icon-btn danger" onClick={stopServer} title="停止 Hugo 服务并关闭窗口">
+          <Square size={14} aria-hidden="true" />
+          停止服务
+        </button>
+        <button
+          className="icon-btn"
+          onClick={closePanel}
+          title={t('close')}
+          aria-label={t('close')}
+        >
+          <X size={17} aria-hidden="true" />
+        </button>
       </div>
       <div className="hugo-body">
         {iframeSrc ? (
@@ -106,11 +135,7 @@ export function HugoPanel() {
         ) : (
           <div className="hugo-placeholder">
             <div className="glyph">{status === 'error' ? '!' : '…'}</div>
-            {status === 'error' ? (
-              <div>{error}</div>
-            ) : (
-              <div>{t('hugoHint')}</div>
-            )}
+            {status === 'error' ? <div>{error}</div> : <div>{t('hugoHint')}</div>}
           </div>
         )}
       </div>

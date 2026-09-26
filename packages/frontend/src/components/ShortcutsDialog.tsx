@@ -4,9 +4,9 @@
  * readers see ⌘-combos while everyone else sees Ctrl.
  */
 import type { ReactNode } from 'react';
-import { Dialog } from './ui.js';
-import { formatCombo, isApple, modLabel } from '../platform.js';
 import { useI18n } from '../i18n/useI18n.js';
+import { formatCombo, isApple, modLabel } from '../platform.js';
+import { Dialog } from './ui.js';
 
 interface ShortcutEntry {
   combo: string;

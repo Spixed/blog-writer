@@ -14,8 +14,9 @@
  * scoped to the plain-Markdown editor (split mode), where the source is never
  * touched by a converter.
  */
-import MarkdownIt from 'markdown-it';
+
 import type { MarkdownIt as Md, Token } from 'markdown-it';
+import MarkdownIt from 'markdown-it';
 import { splitBlocks } from './blocks.js';
 
 export interface ProseMark {
@@ -143,7 +144,7 @@ function hasRawShortcode(src: string): boolean {
     if (!parsed) return true;
     if (parsed.isClose) return true;
     if (parsed.name === 'qq-emoji') {
-      const [name, mode] = parsed.args;
+      const [name, _mode] = parsed.args;
       // Block-mode qmoji is still an editable atom. Keeping it inside the
       // paragraph/list schema lets users select and replace the shortcode
       // instead of turning the whole surrounding list into one raw island.
@@ -196,16 +197,20 @@ function splitInline(text: string): InlinePart[] {
     if (!parsed) continue;
     if (parsed.isClose) {
       if (parsed.name !== 'hl') continue;
-      pushText(text.slice(last, start)); out.push({ kind: 'hl-close' });
+      pushText(text.slice(last, start));
+      out.push({ kind: 'hl-close' });
     } else if (parsed.name === 'qq-emoji') {
       const [name, mode] = parsed.args;
       if (!name) continue;
-      pushText(text.slice(last, start)); out.push({ kind: 'qmoji', name, mode: mode ?? 'inline' });
+      pushText(text.slice(last, start));
+      out.push({ kind: 'qmoji', name, mode: mode ?? 'inline' });
     } else if (parsed.name === 'ruby') {
       const [t, rt] = parsed.args;
-      pushText(text.slice(last, start)); out.push({ kind: 'ruby', text: t ?? '', rt: rt ?? '' });
+      pushText(text.slice(last, start));
+      out.push({ kind: 'ruby', text: t ?? '', rt: rt ?? '' });
     } else if (parsed.name === 'hl') {
-      pushText(text.slice(last, start)); out.push({ kind: 'hl-open', color: parsed.args[0] ?? '' });
+      pushText(text.slice(last, start));
+      out.push({ kind: 'hl-open', color: parsed.args[0] ?? '' });
     } else {
       continue; // unknown: keep as literal text
     }
@@ -255,7 +260,7 @@ function isRawBlock(src: string): boolean {
 }
 
 /** Collect tokens until the matching `close`, honouring nested _open/_close. */
-function untilClose(tokens: Token[], i: number, close: string): [Token[], number] {
+function untilClose(tokens: Token[], i: number, _close: string): [Token[], number] {
   const out: Token[] = [];
   let depth = 1;
   while (i < tokens.length) {
@@ -290,12 +295,20 @@ function inlineNodes(tokens: Token[], marks: ProseMark[], tableCell = false): Pr
         for (const p of splitInline(t.content)) {
           if (p.kind === 'text') {
             if (p.value !== '') {
-              out.push({ type: 'text', text: p.value, marks: stack.length ? [...stack] : undefined });
+              out.push({
+                type: 'text',
+                text: p.value,
+                marks: stack.length ? [...stack] : undefined,
+              });
             }
           } else if (p.kind === 'qmoji') {
             out.push({ type: 'qmoji', attrs: { name: p.name, mode: p.mode } });
           } else if (p.kind === 'ruby') {
-            out.push({ type: 'ruby', attrs: { rt: p.rt }, content: p.text ? [{ type: 'text', text: p.text }] : [] });
+            out.push({
+              type: 'ruby',
+              attrs: { rt: p.rt },
+              content: p.text ? [{ type: 'text', text: p.text }] : [],
+            });
           } else if (p.kind === 'math') {
             out.push({ type: 'mathInline', attrs: { tex: p.tex } });
           } else if (p.kind === 'hl-open') {
@@ -457,7 +470,12 @@ function parseTable(tokens: Token[]): ProseNode | null {
   let i = 0;
   while (i < tokens.length) {
     const t = tokens[i];
-    if (t.type === 'thead_open' || t.type === 'tbody_open' || t.type === 'thead_close' || t.type === 'tbody_close') {
+    if (
+      t.type === 'thead_open' ||
+      t.type === 'tbody_open' ||
+      t.type === 'thead_close' ||
+      t.type === 'tbody_close'
+    ) {
       i++;
       continue;
     }
@@ -471,7 +489,11 @@ function parseTable(tokens: Token[]): ProseNode | null {
         k++;
         continue;
       }
-      const [cellInner, m] = untilClose(inner, k + 1, c.type === 'th_open' ? 'th_close' : 'td_close');
+      const [cellInner, m] = untilClose(
+        inner,
+        k + 1,
+        c.type === 'th_open' ? 'th_close' : 'td_close',
+      );
       const kids = inlineNodes(cellInner, [], true);
       if (kids === null) return null;
       const isHead = c.type === 'th_open';
@@ -568,7 +590,10 @@ function inlineToMd(nodes: ProseNode[] = [], tableCell = false): string {
 function markOrder(type: string): number {
   // Apply inner marks first so the highest priority mark becomes the outer
   // shortcode wrapper and reparsing is deterministic.
-  return ({ code: 1, strike: 2, bold: 3, italic: 4, link: 5, hl: 6 } as Record<string, number>)[type] ?? 10;
+  return (
+    ({ code: 1, strike: 2, bold: 3, italic: 4, link: 5, hl: 6 } as Record<string, number>)[type] ??
+    10
+  );
 }
 
 /** A table cell serialises its blocks to one line; extra blocks become `<br>`. */
@@ -611,7 +636,8 @@ function listItemToMd(item: ProseNode, marker: string, indent: string): string {
       const text = nodeToMd(kid);
       const parts = text.split('\n');
       lines.push(`${indent}${marker}${parts[0]}`);
-      for (let k = 1; k < parts.length; k++) lines.push(`${indent}${' '.repeat(marker.length)}${parts[k]}`);
+      for (let k = 1; k < parts.length; k++)
+        lines.push(`${indent}${' '.repeat(marker.length)}${parts[k]}`);
     }
   }
   return lines.join('\n');
@@ -627,8 +653,11 @@ function nodeToMd(n: ProseNode): string {
       return '---';
     case 'codeBlock': {
       const lang = String(n.attrs?.language ?? '');
-      const code = (n.content ?? []).map((c) => c.text ?? '').join('').replace(/\n$/, '');
-      return '```' + lang + '\n' + code + '\n```';
+      const code = (n.content ?? [])
+        .map((c) => c.text ?? '')
+        .join('')
+        .replace(/\n$/, '');
+      return `\`\`\`${lang}\n${code}\n\`\`\``;
     }
     case 'bulletList':
       return (n.content ?? []).map((li) => listItemToMd(li, '- ', '')).join('\n');
@@ -651,6 +680,9 @@ function nodeToMd(n: ProseNode): string {
 }
 
 export function proseToMarkdown(doc: ProseNode): string {
-  const body = (doc.content ?? []).map(nodeToMd).filter((s) => s !== '').join('\n\n');
+  const body = (doc.content ?? [])
+    .map(nodeToMd)
+    .filter((s) => s !== '')
+    .join('\n\n');
   return body ? `${body}\n` : '';
 }

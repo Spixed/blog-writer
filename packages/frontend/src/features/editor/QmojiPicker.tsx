@@ -3,11 +3,12 @@
  * site's emoji, shown exactly as the blog would show them. Picking one inserts
  * an inline `{{< qq-emoji "name" >}}` atom.
  */
+
+import { qmojiUrl } from '@blog-writer/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useConfig } from '../../hooks/queries.js';
-import { qmojiUrl } from '@blog-writer/shared';
-import { loadLottie } from '../../render/external-scripts.js';
 import { useI18n } from '../../i18n/useI18n.js';
+import { loadLottie } from '../../render/external-scripts.js';
 
 export interface QmojiPickerProps {
   open: boolean;
@@ -87,12 +88,14 @@ export function QmojiPicker({ open, position, onClose, onPick }: QmojiPickerProp
         });
       }
     });
-    grid.querySelectorAll<HTMLElement>('[data-lottie-path]').forEach((slot) => observer.observe(slot));
+    grid
+      .querySelectorAll<HTMLElement>('[data-lottie-path]')
+      .forEach((slot) => observer.observe(slot));
     return () => {
       disposed = true;
       observer.disconnect();
     };
-  }, [open, filtered]);
+  }, [open]);
 
   if (!open || !position) return null;
 
@@ -100,7 +103,10 @@ export function QmojiPicker({ open, position, onClose, onPick }: QmojiPickerProp
     <div
       id="qmoji-picker"
       className="qmoji-picker"
-      style={{ top: Math.max(8, Math.min(position.top, window.innerHeight - 360)), left: Math.max(8, Math.min(position.left, window.innerWidth - 340)) }}
+      style={{
+        top: Math.max(8, Math.min(position.top, window.innerHeight - 360)),
+        left: Math.max(8, Math.min(position.left, window.innerWidth - 340)),
+      }}
       role="dialog"
       aria-label={t('slashQmoji')}
     >
@@ -112,7 +118,22 @@ export function QmojiPicker({ open, position, onClose, onPick }: QmojiPickerProp
         spellCheck={false}
         onChange={(e) => setQ(e.target.value)}
       />
-      <div className="qmoji-mode"><button type="button" className={mode === 'inline' ? 'active' : ''} onClick={() => setMode('inline')}>行内</button><button type="button" className={mode === 'block' ? 'active' : ''} onClick={() => setMode('block')}>独立成行</button></div>
+      <div className="qmoji-mode">
+        <button
+          type="button"
+          className={mode === 'inline' ? 'active' : ''}
+          onClick={() => setMode('inline')}
+        >
+          行内
+        </button>
+        <button
+          type="button"
+          className={mode === 'block' ? 'active' : ''}
+          onClick={() => setMode('block')}
+        >
+          独立成行
+        </button>
+      </div>
       <div className="qmoji-grid" ref={gridRef}>
         {filtered.length === 0 && <div className="qmoji-empty">{t('slashEmpty')}</div>}
         {filtered.map((e) => (
@@ -128,7 +149,11 @@ export function QmojiPicker({ open, position, onClose, onPick }: QmojiPickerProp
             }}
           >
             {e.emojiType === 2 ? (
-              <span className="qmoji-lottie-slot" data-lottie-path={qmojiUrl(e)} aria-label={t('qmojiLottie')} />
+              <span
+                className="qmoji-lottie-slot"
+                data-lottie-path={qmojiUrl(e)}
+                aria-label={t('qmojiLottie')}
+              />
             ) : (
               <img src={qmojiUrl(e)} alt={e.describe} loading="lazy" draggable={false} />
             )}

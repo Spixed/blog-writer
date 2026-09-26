@@ -308,7 +308,8 @@ export const DICTS: Record<UiLang, Record<string, string>> = {
     shortcodeRubyRt: 'かんじ',
     shortcodeMathBody: 'E = mc^2',
     bilingual: 'Bilingual',
-    bilingualHint: 'Edit both languages side by side: current language on the left, the other on the right',
+    bilingualHint:
+      'Edit both languages side by side: current language on the left, the other on the right',
     missingVersion: 'This language version does not exist yet',
     createVersion: 'Create this version',
     creating: 'Creating…',
@@ -353,7 +354,8 @@ export const DICTS: Record<UiLang, Record<string, string>> = {
     // hugo panel
     hugoPanelTitle: 'Hugo Preview',
     hugoConsole: 'Console output',
-    hugoHint: 'The preview is rendered live by Hugo; closing the panel also stops the Hugo process.',
+    hugoHint:
+      'The preview is rendered live by Hugo; closing the panel also stops the Hugo process.',
     statusStarting: 'Starting…',
     statusRunning: 'Running',
     statusStopped: 'Stopped',

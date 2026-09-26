@@ -7,16 +7,17 @@
  * resolved at the source level, then markdown runs, then placeholders are
  * swapped back with their fully rendered HTML.
  */
-import MarkdownIt from 'markdown-it';
-import type { MarkdownIt as Md } from 'markdown-it';
+
 import type { QmojiEntry } from '@blog-writer/shared';
-import { extractFences, replaceFencePlaceholder, type Fence } from './fences.js';
-import { extractMath } from './math.js';
-import { rewriteShortcodes } from './shortcode.js';
-import { figurePlugin, moreMarkerPlugin, tasklistPlugin } from './plugins.js';
-import { highlightCode } from './highlight.js';
+import type { MarkdownIt as Md } from 'markdown-it';
+import MarkdownIt from 'markdown-it';
+import { type BlockRange, splitBlocks } from './blocks.js';
 import { escapeHtml } from './escape.js';
-import { splitBlocks, type BlockRange } from './blocks.js';
+import { extractFences, type Fence, replaceFencePlaceholder } from './fences.js';
+import { highlightCode } from './highlight.js';
+import { extractMath } from './math.js';
+import { figurePlugin, moreMarkerPlugin, tasklistPlugin } from './plugins.js';
+import { rewriteShortcodes } from './shortcode.js';
 
 export interface RenderContext {
   qmoji: QmojiEntry[];

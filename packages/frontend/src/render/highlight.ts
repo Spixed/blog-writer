@@ -3,8 +3,9 @@
  * Languages are loaded on demand; unknown languages fall back to a plain,
  * palette-consistent <pre>.
  */
-import { createHighlighter } from 'shiki';
+
 import type { Highlighter, ThemeRegistrationRaw } from 'shiki';
+import { createHighlighter } from 'shiki';
 import { escapeHtml } from './escape.js';
 
 /** Polymer Dark expressed as a TextMate theme for the live preview. */
@@ -17,11 +18,20 @@ const CHROMA_MONOKAI: ThemeRegistrationRaw = {
   },
   settings: [
     { settings: { foreground: '#d4d4d4', background: '#252529' } },
-    { scope: ['comment', 'punctuation.definition.comment'], settings: { foreground: '#6a9955', fontStyle: 'italic' } },
-    { scope: ['meta.preprocessor', 'punctuation.definition.directive'], settings: { foreground: '#c586c0', fontStyle: 'bold' } },
+    {
+      scope: ['comment', 'punctuation.definition.comment'],
+      settings: { foreground: '#6a9955', fontStyle: 'italic' },
+    },
+    {
+      scope: ['meta.preprocessor', 'punctuation.definition.directive'],
+      settings: { foreground: '#c586c0', fontStyle: 'bold' },
+    },
     { scope: ['keyword'], settings: { foreground: '#c586c0' } },
     { scope: ['storage'], settings: { foreground: '#c586c0' } },
-    { scope: ['storage.type.built-in.primitive', 'storage.type'], settings: { foreground: '#569cd6' } },
+    {
+      scope: ['storage.type.built-in.primitive', 'storage.type'],
+      settings: { foreground: '#569cd6' },
+    },
     { scope: ['storage.type.string'], settings: { foreground: '#ce9178' } },
     // `from`/`import` are KeywordNamespace in Chroma (#f92672), unlike the
     // rest of the keyword family (#66d9ef).
@@ -29,8 +39,14 @@ const CHROMA_MONOKAI: ThemeRegistrationRaw = {
     { scope: ['keyword.operator'], settings: { foreground: '#d4d4d4' } },
     { scope: ['constant.language'], settings: { foreground: '#c586c0' } },
     { scope: ['string'], settings: { foreground: '#ce9178' } },
-    { scope: ['punctuation.definition.string', 'constant.character.format.placeholder'], settings: { foreground: '#ce9178' } },
-    { scope: ['string.quoted.other.lt-gt.include'], settings: { foreground: '#ce9178', fontStyle: 'normal' } },
+    {
+      scope: ['punctuation.definition.string', 'constant.character.format.placeholder'],
+      settings: { foreground: '#ce9178' },
+    },
+    {
+      scope: ['string.quoted.other.lt-gt.include'],
+      settings: { foreground: '#ce9178', fontStyle: 'normal' },
+    },
     { scope: ['constant.character.escape'], settings: { foreground: '#d7ba7d' } },
     { scope: ['constant.numeric'], settings: { foreground: '#b5cea8' } },
     {
@@ -41,7 +57,10 @@ const CHROMA_MONOKAI: ThemeRegistrationRaw = {
     { scope: ['support.function.builtin.python'], settings: { foreground: '#4ec9b0' } },
     { scope: ['entity.name.class', 'support.class'], settings: { foreground: '#4ec9b0' } },
     { scope: ['entity.name.type', 'support.type'], settings: { foreground: '#569cd6' } },
-    { scope: ['entity.other.attribute-name', 'variable.other.property'], settings: { foreground: '#9cdcfe' } },
+    {
+      scope: ['entity.other.attribute-name', 'variable.other.property'],
+      settings: { foreground: '#9cdcfe' },
+    },
     { scope: ['entity.name.tag'], settings: { foreground: '#9cdcfe' } },
     { scope: ['punctuation'], settings: { foreground: '#d4d4d4' } },
     { scope: ['invalid'], settings: { foreground: '#f44747' } },
@@ -83,8 +102,7 @@ function resolveLang(lang: string): string {
   return LANG_ALIASES[norm] ?? norm;
 }
 
-const FALLBACK_PRE =
-  '<pre tabindex="0" style="background-color:#252529;color:#d4d4d4"><code>';
+const FALLBACK_PRE = '<pre tabindex="0" style="background-color:#252529;color:#d4d4d4"><code>';
 
 export async function highlightCode(lang: string, code: string): Promise<string> {
   const hl = await getHighlighter();
@@ -99,5 +117,8 @@ export async function highlightCode(lang: string, code: string): Promise<string>
       // unknown language -> plain fallback below
     }
   }
-  return `${FALLBACK_PRE}${code.split('\n').map((line) => `<span class="line">${escapeHtml(line)}</span>`).join('\n')}</code></pre>`;
+  return `${FALLBACK_PRE}${code
+    .split('\n')
+    .map((line) => `<span class="line">${escapeHtml(line)}</span>`)
+    .join('\n')}</code></pre>`;
 }

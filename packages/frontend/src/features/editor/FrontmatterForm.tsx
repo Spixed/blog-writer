@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import yaml from 'js-yaml';
-import { CalendarDays } from 'lucide-react';
+import type { Frontmatter } from '@blog-writer/shared';
 import {
   FIELD_SCHEMA,
-  toDatetimeLocal,
   fromDatetimeLocal,
+  toDatetimeLocal,
   validateFrontmatter,
 } from '@blog-writer/shared';
-import type { Frontmatter } from '@blog-writer/shared';
-import { useConfig, useTaxonomy } from '../../hooks/queries.js';
-import { TagInput, Toggle } from '../../components/ui.js';
+import yaml from 'js-yaml';
+import { CalendarDays } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SelectMenu } from '../../components/SelectMenu.js';
+import { TagInput, Toggle } from '../../components/ui.js';
+import { useConfig, useTaxonomy } from '../../hooks/queries.js';
 import { useI18n } from '../../i18n/useI18n.js';
 
 interface Props {
@@ -39,7 +39,7 @@ export function FrontmatterForm({ frontmatter, onChange }: Props) {
       <div className="fm-grid">
         {FIELD_SCHEMA.filter((f) => f.group !== 'advanced').map((f) => (
           <div key={String(f.key)} className={`field ${f.type === 'textarea' ? 'full' : ''}`}>
-            <label>{t(`fm.${f.key}`,)}</label>
+            <label>{t(`fm.${f.key}`)}</label>
             {f.type === 'text' && (
               <input
                 type="text"
@@ -81,18 +81,27 @@ export function FrontmatterForm({ frontmatter, onChange }: Props) {
               />
             )}
             {f.type === 'select' && f.optionsFrom === 'authors' && (
-              <SelectMenu label={t(`fm.${f.key}`)} value={String(frontmatter[f.key as keyof Frontmatter] ?? '')}
+              <SelectMenu
+                label={t(`fm.${f.key}`)}
+                value={String(frontmatter[f.key as keyof Frontmatter] ?? '')}
                 onChange={(author) => set(f.key as never, author as never)}
-                options={[{ value: '', label: '—' }, ...(config.data?.authors ?? []).map((a) => ({ value: a.key, label: a.nickname ?? a.name }))]} />
+                options={[
+                  { value: '', label: '—' },
+                  ...(config.data?.authors ?? []).map((a) => ({
+                    value: a.key,
+                    label: a.nickname ?? a.name,
+                  })),
+                ]}
+              />
             )}
             {(f.type === 'multiselect' || (f.type === 'select' && f.optionsFrom !== 'authors')) && (
               <TagInput
                 values={(frontmatter[f.key as keyof Frontmatter] as string[]) ?? []}
                 suggestions={
                   f.optionsFrom === 'categories'
-                    ? cats.data ?? []
+                    ? (cats.data ?? [])
                     : f.optionsFrom === 'tags'
-                      ? tags.data ?? []
+                      ? (tags.data ?? [])
                       : []
                 }
                 onChange={(v) => set(f.key as never, v as never)}
@@ -169,7 +178,8 @@ function DatetimeField({ value, onCommit }: { value: string; onCommit: (local: s
   const wrapRef = useRef<HTMLDivElement>(null);
   const segRefs = useRef<Partial<Record<DtKey, HTMLInputElement | null>>>({});
   const pickerRef = useRef<HTMLInputElement>(null);
-  const canPick = typeof HTMLInputElement !== 'undefined' && 'showPicker' in HTMLInputElement.prototype;
+  const canPick =
+    typeof HTMLInputElement !== 'undefined' && 'showPicker' in HTMLInputElement.prototype;
 
   const allValid = DT_ORDER.every((k) => segmentValid(k, segs[k], segs));
 
@@ -190,7 +200,7 @@ function DatetimeField({ value, onCommit }: { value: string; onCommit: (local: s
     const local = `${segs.y}-${segs.mo}-${segs.d}T${segs.h}:${segs.mi}`;
     if (local !== value) onCommit(local);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segs, allValid, value]);
+  }, [segs, allValid, value, onCommit]);
 
   const focusSeg = (k: DtKey) => {
     const el = segRefs.current[k];
@@ -242,13 +252,15 @@ function DatetimeField({ value, onCommit }: { value: string; onCommit: (local: s
     >
       {DT_ORDER.map((k, i) => (
         <span key={k} className="dt-seg-wrap">
-          {i > 0 && <span className="dt-sep">{i === 3 ? ' ' : i === 1 || i === 2 ? '-' : ':'}</span>}
+          {i > 0 && (
+            <span className="dt-sep">{i === 3 ? ' ' : i === 1 || i === 2 ? '-' : ':'}</span>
+          )}
           <input
             ref={(el) => {
               segRefs.current[k] = el;
             }}
             data-dt={k}
-            className={'dt-seg' + (touched && !segmentValid(k, segs[k], segs) ? ' dt-invalid' : '')}
+            className={`dt-seg${touched && !segmentValid(k, segs[k], segs) ? ' dt-invalid' : ''}`}
             inputMode="numeric"
             autoComplete="off"
             maxLength={DT_MAX[k] + 1}
@@ -345,7 +357,7 @@ function RawFrontmatter({ frontmatter, onChange }: Props) {
           onFocus={() => {
             focused.current = true;
           }}
-          onBlur={(e) => {
+          onBlur={(_e) => {
             focused.current = false;
             commit();
           }}

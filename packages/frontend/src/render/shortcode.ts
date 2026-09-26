@@ -9,9 +9,10 @@
  *
  * Output mirrors the Go templates exactly (same classes, same inline styles).
  */
-import type { MarkdownIt } from 'markdown-it';
-import { HL_COLOR_MAP, normalizeQmojiName, qmojiUrl } from '@blog-writer/shared';
+
 import type { QmojiEntry } from '@blog-writer/shared';
+import { HL_COLOR_MAP, normalizeQmojiName, qmojiUrl } from '@blog-writer/shared';
+import type { MarkdownIt } from 'markdown-it';
 import { escapeHtml } from './escape.js';
 
 export interface RewriteResult {
@@ -61,11 +62,7 @@ function tokenizeArgs(s: string): string[] {
   return out;
 }
 
-export function rewriteShortcodes(
-  src: string,
-  md: MarkdownIt,
-  qmoji: QmojiEntry[],
-): RewriteResult {
+export function rewriteShortcodes(src: string, md: MarkdownIt, qmoji: QmojiEntry[]): RewriteResult {
   const fragments = new Map<string, string>();
   let uid = 0;
 
@@ -108,9 +105,7 @@ export function rewriteShortcodes(
   const renderHl = (args: string[], inner: string, isBlock: boolean): string => {
     const color = HL_COLOR_MAP[args[0] ?? ''] ?? '#2979FF';
     // `.Inner | markdownify`, recursively resolving shortcodes first.
-    const innerHtml = isBlock
-      ? md.render(rewrite(inner))
-      : md.renderInline(rewrite(inner));
+    const innerHtml = isBlock ? md.render(rewrite(inner)) : md.renderInline(rewrite(inner));
     if (isBlock) {
       return `<div class="hl-shortcode-block" style="color: ${color}; font-weight: bold; border-left: 4px solid ${color}; padding-left: 1rem; margin: 1rem 0;">${innerHtml}</div>`;
     }
@@ -155,7 +150,10 @@ export function rewriteShortcodes(
       // Unknown shortcode: keep it visible instead of letting markdown mangle it.
       out +=
         text.slice(last, m.index) +
-        placeholder(`<span class="shortcode-unknown">${escapeHtml(text.slice(m.index, tagEnd))}</span>`, false);
+        placeholder(
+          `<span class="shortcode-unknown">${escapeHtml(text.slice(m.index, tagEnd))}</span>`,
+          false,
+        );
       last = tagEnd;
     }
     return out + text.slice(last);

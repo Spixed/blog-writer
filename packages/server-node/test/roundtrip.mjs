@@ -19,7 +19,9 @@ async function main() {
 
   const slug = 'qmoji-showcase';
   const file = `D:\\Projects\\blog\\content\\zh\\post\\${slug}.md`;
-  const before = createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  const before = createHash('sha256')
+    .update(await fs.readFile(file))
+    .digest('hex');
 
   const post = await (await fetch(`${API}/posts/zh/${slug}`)).json();
   const fm = { ...post.frontmatter, date: String(post.frontmatter.date) }; // string, like the UI
@@ -33,12 +35,14 @@ async function main() {
     process.exit(1);
   }
 
-  const after = createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  const after = createHash('sha256')
+    .update(await fs.readFile(file))
+    .digest('hex');
   console.log('round-trip byte-identical:', before === after);
 
   // Second pass: an actual content change must take effect.
-  const body2 = post.body + '\n\n<!-- smoke -->\n';
-  const res2 = await fetch(`${API}/posts/zh/${slug}`, {
+  const body2 = `${post.body}\n\n<!-- smoke -->\n`;
+  const _res2 = await fetch(`${API}/posts/zh/${slug}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ frontmatter: fm, body: body2 }),
@@ -52,7 +56,9 @@ async function main() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ frontmatter: fm, body: post.body }),
   });
-  const restored = createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  const restored = createHash('sha256')
+    .update(await fs.readFile(file))
+    .digest('hex');
   console.log('restored to original:', restored === before);
 }
 

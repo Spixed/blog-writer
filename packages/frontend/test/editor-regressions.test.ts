@@ -17,8 +17,8 @@ describe('source editor regressions', () => {
 });
 
 describe('heading scroll mapping', () => {
-  const source = [100, 200, 400].map(top => ({ top }));
-  const render = [50, 450, 900].map(top => ({ top }));
+  const source = [100, 200, 400].map((top) => ({ top }));
+  const render = [50, 450, 900].map((top) => ({ top }));
   test('each heading aligns exactly in both directions', () => {
     source.forEach((anchor, i) => {
       expect(mapScroll(anchor.top, source, render, 600, 1500)).toBe(render[i]!.top);

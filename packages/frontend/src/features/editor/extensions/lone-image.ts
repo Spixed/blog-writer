@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core';
+import type { Node as PMNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import type { Node as PMNode } from '@tiptap/pm/model';
 
 const key = new PluginKey<DecorationSet>('loneImage');
 
@@ -26,15 +26,17 @@ function build(doc: PMNode): DecorationSet {
 export const LoneImage = Extension.create({
   name: 'loneImage',
   addProseMirrorPlugins() {
-    return [new Plugin<DecorationSet>({
-      key,
-      state: {
-        init: (_, state) => build(state.doc),
-        // Rebuild on content change only; the walk is linear and blog posts
-        // are small, so this stays well under a frame.
-        apply: (tr, previous) => (tr.docChanged ? build(tr.doc) : previous),
-      },
-      props: { decorations: (state) => key.getState(state) },
-    })];
+    return [
+      new Plugin<DecorationSet>({
+        key,
+        state: {
+          init: (_, state) => build(state.doc),
+          // Rebuild on content change only; the walk is linear and blog posts
+          // are small, so this stays well under a frame.
+          apply: (tr, previous) => (tr.docChanged ? build(tr.doc) : previous),
+        },
+        props: { decorations: (state) => key.getState(state) },
+      }),
+    ];
   },
 });

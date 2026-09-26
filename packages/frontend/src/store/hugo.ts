@@ -33,7 +33,10 @@ export const useHugo = create<HugoState>((set, get) => ({
   panelPos: null,
 
   openPanel: async () => {
-    if (get().status === 'running') { set({ open: true }); return; }
+    if (get().status === 'running') {
+      set({ open: true });
+      return;
+    }
     set({ open: true, status: 'starting', error: null, lines: [] });
     try {
       const r = await api.hugo('serve');
@@ -70,7 +73,7 @@ export const useHugo = create<HugoState>((set, get) => ({
   },
 
   syncStatus: (running, url) => {
-    set({ status: running ? 'running' : 'idle', url: running ? url ?? null : null });
+    set({ status: running ? 'running' : 'idle', url: running ? (url ?? null) : null });
   },
 
   refresh: () => set((s) => ({ refreshKey: s.refreshKey + 1 })),

@@ -46,12 +46,7 @@ export interface WorkspaceApi {
     slug: string,
     data: { frontmatter: FrontmatterLike; body: string },
   ): Promise<void>;
-  renamePost(
-    lang: Lang,
-    slug: string,
-    newSlug: string,
-    opts?: { pair?: boolean },
-  ): Promise<void>;
+  renamePost(lang: Lang, slug: string, newSlug: string, opts?: { pair?: boolean }): Promise<void>;
   deletePost(lang: Lang, slug: string, opts?: { pair?: boolean }): Promise<void>;
   /**
    * Restore a deleted post's exact bytes (Undo). Bypasses front matter

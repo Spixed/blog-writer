@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { HugoResult } from '@blog-writer/shared';
@@ -122,7 +122,9 @@ export class HugoManager {
         };
         proc.stdout.on('data', collect);
         proc.stderr.on('data', collect);
-        proc.on('error', (err) => resolve({ ok: false, error: `无法启动 hugo: ${err.message}`, output }));
+        proc.on('error', (err) =>
+          resolve({ ok: false, error: `无法启动 hugo: ${err.message}`, output }),
+        );
         proc.on('exit', (code) => {
           if (code === 0) resolve({ ok: true, output });
           else resolve({ ok: false, error: `hugo 构建失败 (code ${code})`, output });

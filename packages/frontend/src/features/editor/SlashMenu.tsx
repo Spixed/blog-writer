@@ -6,11 +6,30 @@
  * quirks), and keyboard handling rides on an extension in the editor that
  * calls into this component through `apiRef`.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useEditorState } from '@tiptap/react';
+
 import type { Editor } from '@tiptap/react';
-import { Code2, Heading1, Heading2, Heading3, Highlighter, Image, Languages, List, ListOrdered, Minus, MoreHorizontal, Pilcrow, Quote, Sigma, Smile, SquareCode, Table2 } from 'lucide-react';
+import { useEditorState } from '@tiptap/react';
 import type { LucideIcon } from 'lucide-react';
+import {
+  Code2,
+  Heading1,
+  Heading2,
+  Heading3,
+  Highlighter,
+  Image,
+  Languages,
+  List,
+  ListOrdered,
+  Minus,
+  MoreHorizontal,
+  Pilcrow,
+  Quote,
+  Sigma,
+  Smile,
+  SquareCode,
+  Table2,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../../i18n/useI18n.js';
 
 export interface SlashApi {
@@ -59,7 +78,13 @@ function useSlashQuery(editor: Editor): string | null {
   });
 }
 
-export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInlineMath }: SlashMenuProps) {
+export function SlashMenu({
+  editor,
+  apiRef,
+  onOpenQmoji,
+  onOpenImage,
+  onOpenInlineMath,
+}: SlashMenuProps) {
   const { t } = useI18n();
   const query = useSlashQuery(editor);
   const hasQuery = query !== null;
@@ -73,7 +98,13 @@ export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInli
 
   const items = useMemo<SlashItem[]>(() => {
     return [
-      { id: 'text', label: t('slashText'), icon: Pilcrow, group: 'basic', run: (e) => e.chain().focus().setParagraph().run() },
+      {
+        id: 'text',
+        label: t('slashText'),
+        icon: Pilcrow,
+        group: 'basic',
+        run: (e) => e.chain().focus().setParagraph().run(),
+      },
       ...([1, 2, 3] as const).map((level) => ({
         id: `h${level}`,
         label: t('slashHeading', { n: level }),
@@ -81,31 +112,96 @@ export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInli
         group: 'basic' as const,
         run: (e: Editor) => e.chain().focus().toggleHeading({ level }).run(),
       })),
-      { id: 'ul', label: t('slashBullet'), icon: List, group: 'basic', run: (e) => e.chain().focus().toggleBulletList().run() },
-      { id: 'ol', label: t('slashOrdered'), icon: ListOrdered, group: 'basic', run: (e) => e.chain().focus().toggleOrderedList().run() },
-      { id: 'quote', label: t('slashQuote'), icon: Quote, group: 'basic', run: (e) => e.chain().focus().toggleBlockquote().run() },
-      { id: 'code', label: t('slashCode'), icon: SquareCode, group: 'basic', run: (e) => e.chain().focus().toggleCodeBlock().run() },
-      { id: 'hr', label: t('slashRule'), icon: Minus, group: 'basic', run: (e) => e.chain().focus().setHorizontalRule().run() },
-      { id: 'inlineCode', label: t('inlineCode'), icon: Code2, group: 'shortcode', run: (e) => e.chain().focus().toggleCode().run() },
+      {
+        id: 'ul',
+        label: t('slashBullet'),
+        icon: List,
+        group: 'basic',
+        run: (e) => e.chain().focus().toggleBulletList().run(),
+      },
+      {
+        id: 'ol',
+        label: t('slashOrdered'),
+        icon: ListOrdered,
+        group: 'basic',
+        run: (e) => e.chain().focus().toggleOrderedList().run(),
+      },
+      {
+        id: 'quote',
+        label: t('slashQuote'),
+        icon: Quote,
+        group: 'basic',
+        run: (e) => e.chain().focus().toggleBlockquote().run(),
+      },
+      {
+        id: 'code',
+        label: t('slashCode'),
+        icon: SquareCode,
+        group: 'basic',
+        run: (e) => e.chain().focus().toggleCodeBlock().run(),
+      },
+      {
+        id: 'hr',
+        label: t('slashRule'),
+        icon: Minus,
+        group: 'basic',
+        run: (e) => e.chain().focus().setHorizontalRule().run(),
+      },
+      {
+        id: 'inlineCode',
+        label: t('inlineCode'),
+        icon: Code2,
+        group: 'shortcode',
+        run: (e) => e.chain().focus().toggleCode().run(),
+      },
       {
         id: 'hl',
         label: t('slashHl'),
         icon: Highlighter,
         group: 'shortcode',
         run: (e) =>
-          e.chain().focus().insertContent({
-            type: 'text', text: t('shortcodeHlBody'),
-            marks: [{ type: 'hl', attrs: { color: 'orange' } }],
-          }).run(),
+          e
+            .chain()
+            .focus()
+            .insertContent({
+              type: 'text',
+              text: t('shortcodeHlBody'),
+              marks: [{ type: 'hl', attrs: { color: 'orange' } }],
+            })
+            .run(),
       },
       {
-        id: 'ruby', label: t('slashRuby'), icon: Languages, group: 'shortcode',
-        run: (e) => e.chain().focus().insertRuby({ text: t('shortcodeRubyText'), rt: t('shortcodeRubyRt') }).run(),
+        id: 'ruby',
+        label: t('slashRuby'),
+        icon: Languages,
+        group: 'shortcode',
+        run: (e) =>
+          e
+            .chain()
+            .focus()
+            .insertRuby({ text: t('shortcodeRubyText'), rt: t('shortcodeRubyRt') })
+            .run(),
       },
-      { id: 'inlineMath', label: t('slashInlineMath'), icon: Sigma, group: 'shortcode', run: () => onOpenInlineMath?.() },
-      { id: 'qmoji', label: t('slashQmoji'), icon: Smile, group: 'shortcode', qmoji: true, run: () => undefined },
       {
-        id: 'table', label: t('slashTable'), icon: Table2, group: 'insert',
+        id: 'inlineMath',
+        label: t('slashInlineMath'),
+        icon: Sigma,
+        group: 'shortcode',
+        run: () => onOpenInlineMath?.(),
+      },
+      {
+        id: 'qmoji',
+        label: t('slashQmoji'),
+        icon: Smile,
+        group: 'shortcode',
+        qmoji: true,
+        run: () => undefined,
+      },
+      {
+        id: 'table',
+        label: t('slashTable'),
+        icon: Table2,
+        group: 'insert',
         run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
       },
       {
@@ -120,9 +216,15 @@ export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInli
         label: t('slashMath'),
         icon: Sigma,
         group: 'insert',
-        run: (e) => insertRaw(e, '$$\n' + t('shortcodeMathBody') + '\n$$'),
+        run: (e) => insertRaw(e, `$$\n${t('shortcodeMathBody')}\n$$`),
       },
-      { id: 'more', label: 'More 分隔线', icon: MoreHorizontal, group: 'insert', run: (e) => insertRaw(e, '<!--more-->') },
+      {
+        id: 'more',
+        label: 'More 分隔线',
+        icon: MoreHorizontal,
+        group: 'insert',
+        run: (e) => insertRaw(e, '<!--more-->'),
+      },
     ];
   }, [t, onOpenImage, onOpenInlineMath]);
 
@@ -142,7 +244,7 @@ export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInli
     }
     const coords = editor.view.coordsAtPos(editor.state.selection.from);
     setPos({ top: coords.bottom + 6, left: coords.left });
-  }, [hasQuery, query, editor]);
+  }, [hasQuery, editor]);
 
   // Keep the highlighted row visible while arrowing through.
   useEffect(() => {
@@ -198,7 +300,10 @@ export function SlashMenu({ editor, apiRef, onOpenQmoji, onOpenImage, onOpenInli
     <div
       ref={listRef}
       className="slash-menu"
-      style={{ top: Math.max(8, Math.min(pos.top, window.innerHeight - 320)), left: Math.max(8, Math.min(pos.left, window.innerWidth - 260)) }}
+      style={{
+        top: Math.max(8, Math.min(pos.top, window.innerHeight - 320)),
+        left: Math.max(8, Math.min(pos.left, window.innerWidth - 260)),
+      }}
       role="listbox"
     >
       {filtered.length === 0 && <div className="slash-empty">{t('slashEmpty')}</div>}
@@ -243,7 +348,8 @@ function deleteSlash(editor: Editor, query: string | null): void {
   const before = parent.textBetween(0, editor.state.selection.$from.parentOffset, '\n', '\ufffc');
   const lineStart = before.lastIndexOf('\n') + 1;
   const slash = before.lastIndexOf('/');
-  const start = slash >= lineStart ? from - (before.length - slash) : from - (query?.length ?? 0) - 1;
+  const start =
+    slash >= lineStart ? from - (before.length - slash) : from - (query?.length ?? 0) - 1;
   if (start < from) editor.chain().focus().deleteRange({ from: start, to: from }).run();
 }
 

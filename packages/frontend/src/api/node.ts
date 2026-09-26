@@ -164,7 +164,8 @@ export class NodeApi implements WorkspaceApi {
     const bytes = new Uint8Array(data);
     let binary = '';
     const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    for (let i = 0; i < bytes.length; i += chunk)
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
     return this.request<{ item: MediaItem }>('/media', {
       method: 'POST',
       body: { dir: relDir, filename, data: btoa(binary) },

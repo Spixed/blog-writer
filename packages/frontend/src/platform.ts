@@ -7,7 +7,10 @@
 /** True on macOS / iOS where the primary modifier is Cmd. */
 export function isApple(): boolean {
   if (typeof navigator === 'undefined') return false;
-  const platform = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ?? navigator.platform ?? navigator.userAgent;
+  const platform =
+    (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ??
+    navigator.platform ??
+    navigator.userAgent;
   return /Mac|iPhone|iPad|iPod/i.test(platform);
 }
 
@@ -36,6 +39,13 @@ export function formatCombo(combo: string): string {
 }
 
 function prettyKey(key: string): string {
-  const map: Record<string, string> = { Enter: '↵', Escape: 'Esc', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
+  const map: Record<string, string> = {
+    Enter: '↵',
+    Escape: 'Esc',
+    ArrowUp: '↑',
+    ArrowDown: '↓',
+    ArrowLeft: '←',
+    ArrowRight: '→',
+  };
   return map[key] ?? key;
 }

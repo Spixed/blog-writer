@@ -10,9 +10,9 @@
    weights and CJK fallbacks match the live blog rather than a close-ish
    Google Fonts subset. Huiwen Mincho is what Chinese headings actually use,
    and Maple Mono CN is the code face. */
-@import url('https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+XiaoWei&family=Space+Grotesk:wght@300;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-@import url('https://fontsapi.zeoseven.com/442/main/result.css');
-@import url('https://fontsapi.zeoseven.com/256/main/result.css');
+@import url("https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+XiaoWei&family=Space+Grotesk:wght@300;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap");
+@import url("https://fontsapi.zeoseven.com/442/main/result.css");
+@import url("https://fontsapi.zeoseven.com/256/main/result.css");
 
 /* The palette is shared by the content surface itself and the scroll containers
    around it: the blog's page is a full-bleed --bg surface, so the area outside
@@ -50,13 +50,13 @@
 }
 
 .theme-root {
-  font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
   font-size: 16px;
 }
 
-.theme-root[data-theme='dark'],
-.wysiwyg-scroll[data-theme='dark'],
-.preview-scroll[data-theme='dark'] {
+.theme-root[data-theme="dark"],
+.wysiwyg-scroll[data-theme="dark"],
+.preview-scroll[data-theme="dark"] {
   --bg: #121212;
   --surface: #1e1e1e;
   --ink: #fdf6e3;
@@ -75,7 +75,7 @@
 .theme-root h4,
 .theme-root h5,
 .theme-root h6 {
-  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+  font-family: "Space Grotesk", "Huiwen-mincho", "Noto Sans SC", sans-serif;
   font-weight: bold;
 }
 
@@ -98,7 +98,7 @@
 .theme-root .meta-bar {
   display: flex;
   gap: 20px;
-  font-family: 'Space Mono';
+  font-family: "Space Mono";
   font-size: 0.9rem;
   border-top: 3px solid var(--ink);
   border-bottom: 3px solid var(--ink);
@@ -157,7 +157,7 @@
   font-size: 1.1rem;
   line-height: 1.6;
   font-style: italic;
-  font-family: 'Space Mono', 'Noto Sans SC', serif;
+  font-family: "Space Mono", "Noto Sans SC", serif;
   word-break: break-word;
   box-shadow: var(--shadow);
 }
@@ -171,7 +171,7 @@
   margin-right: 0.6rem;
   line-height: 0.9;
   font-weight: bold;
-  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+  font-family: "Space Grotesk", "Huiwen-mincho", "Noto Sans SC", sans-serif;
 }
 /* Fix drop cap inside links. The theme writes `::first-letter a`, which is
    invalid CSS (a pseudo-element cannot be followed by a selector); browsers
@@ -191,7 +191,7 @@
   width: 100%;
   border-collapse: collapse;
   margin: 2rem 0;
-  font-family: 'Space Mono', 'Noto Sans SC', monospace;
+  font-family: "Space Mono", "Noto Sans SC", monospace;
   font-size: 0.9rem;
   display: block;
   overflow-x: auto;
@@ -216,7 +216,7 @@
 
 /* ---- inline code ----------------------------------------------------- */
 .theme-root .content code {
-  font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+  font-family: "Maple Mono NF CN", "Space Mono", monospace;
   background: var(--surface);
   color: var(--ink);
   border: 2px solid var(--ink);
@@ -267,7 +267,7 @@
   background: var(--code-lang-bg);
   color: var(--code-lang-fg);
   padding: 2px 8px;
-  font-family: 'Space Mono', monospace;
+  font-family: "Space Mono", monospace;
   font-size: 0.8rem;
   font-weight: bold;
   z-index: 5;
@@ -278,14 +278,14 @@
   /* Chroma monokai background — on the real blog Hugo's inline style wins
      over this rule, so the editor must mirror the inline value (#272822),
      not the theme sheet's own colour. */
-  background: var(--code-bg) !important;
+  background: var(--code-bg);
   color: var(--code-fg);
   padding: 1.5rem;
   overflow-x: auto;
   border: none;
   margin: 2rem 0;
   position: relative;
-  font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+  font-family: "Maple Mono NF CN", "Space Mono", monospace;
   font-size: 13pt;
   line-height: 1.5;
   white-space: pre;
@@ -312,7 +312,9 @@
   margin: 2rem 0;
 }
 .theme-root .code-container > .highlight,
-.theme-root .code-container > .highlight > pre { margin: 0; }
+.theme-root .code-container > .highlight > pre {
+  margin: 0;
+}
 .theme-root .code-toolbar {
   position: absolute;
   top: 0;
@@ -327,7 +329,7 @@
   display: inline-flex;
   align-items: center;
   line-height: 1;
-  font-size: .72rem;
+  font-size: 0.72rem;
   border-radius: 0;
 }
 .theme-root .copy-btn {
@@ -338,7 +340,7 @@
   border: 2px solid var(--ink);
   color: var(--ink);
   padding: 4px 8px;
-  font-family: 'Space Mono';
+  font-family: "Space Mono";
   font-size: 0.8rem;
   font-weight: bold;
   cursor: pointer;
@@ -372,10 +374,10 @@
   list-style: none;
   padding-left: 0;
 }
-.theme-root .content ul li:has(input[type='checkbox']) {
+.theme-root .content ul li:has(input[type="checkbox"]) {
   list-style: none;
 }
-.theme-root .content ul li input[type='checkbox'] {
+.theme-root .content ul li input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   width: 1.2em;
@@ -387,12 +389,12 @@
   position: relative;
   cursor: pointer;
 }
-.theme-root .content ul li input[type='checkbox']:checked {
+.theme-root .content ul li input[type="checkbox"]:checked {
   background: var(--green);
   border-color: var(--ink);
 }
-.theme-root .content ul li input[type='checkbox']:checked::after {
-  content: '✓';
+.theme-root .content ul li input[type="checkbox"]:checked::after {
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -435,7 +437,7 @@
   margin: 0;
 }
 .theme-root figure.image-figure figcaption {
-  font-family: 'Space Mono', 'Noto Sans SC', monospace;
+  font-family: "Space Mono", "Noto Sans SC", monospace;
   font-size: 0.85rem;
   text-align: center;
   margin-top: 0.5rem;
@@ -470,10 +472,10 @@
   vertical-align: text-bottom;
   height: 1.2em;
   width: auto;
-  border: none !important;
-  margin: 0 1px !important;
-  box-shadow: none !important;
-  cursor: default !important;
+  border: none;
+  margin: 0 1px;
+  box-shadow: none;
+  cursor: default;
 }
 .theme-root .super-qmoji {
   display: inline-block;
@@ -516,17 +518,17 @@
   margin-bottom: 0.5rem;
 }
 .theme-root .footnotes p::first-letter {
-  float: none !important;
-  font-size: inherit !important;
-  font-weight: normal !important;
-  font-family: inherit !important;
-  margin: 0 !important;
-  line-height: inherit !important;
+  float: none;
+  font-size: inherit;
+  font-weight: normal;
+  font-family: inherit;
+  margin: 0;
+  line-height: inherit;
 }
 .theme-root sup.footnote-ref a {
   text-decoration: none;
   border-bottom: none;
-  font-family: 'Space Mono';
+  font-family: "Space Mono";
   margin: 0 2px;
 }
 
@@ -536,7 +538,7 @@
   margin: 2rem 0;
   border-top: 3px dashed var(--dark-grey);
   padding-top: 0.4rem;
-  font-family: 'Space Mono', monospace;
+  font-family: "Space Mono", monospace;
   font-size: 0.75rem;
   color: var(--dark-grey);
   text-align: center;
@@ -546,7 +548,7 @@
 /* ---- shortcode placeholder (unknown shortcodes) ---------------------- */
 .theme-root .shortcode-unknown {
   display: inline-block;
-  font-family: 'Space Mono', monospace;
+  font-family: "Space Mono", monospace;
   font-size: 0.8em;
   padding: 0.1rem 0.4rem;
   border: 2px dashed var(--dark-grey);
@@ -601,7 +603,7 @@
   line-height: 0.9;
   font-weight: bold;
   font-size: var(--drop-cap-size, 4rem);
-  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+  font-family: "Space Grotesk", "Huiwen-mincho", "Noto Sans SC", sans-serif;
 }
 
 /* Polymer's non-scrolling toolbar and thin, dark code scrollbar. */
@@ -612,19 +614,26 @@
   border-radius: 0;
   box-shadow: none;
   color: var(--code-fg);
-  font: 13pt/1.5 'Maple Mono NF CN', 'Space Mono', monospace;
+  font:
+    13pt / 1.5 "Maple Mono NF CN",
+    "Space Mono",
+    monospace;
   white-space: pre;
   scrollbar-width: thin;
   scrollbar-color: #4a4a52 transparent;
 }
-.theme-root .code-container .code-toolbar { height: 1.5rem; }
+.theme-root .code-container .code-toolbar {
+  height: 1.5rem;
+}
 .theme-root .code-container .code-toolbar .code-lang {
   border-radius: 0;
   background: var(--code-lang-bg);
   color: var(--code-lang-fg);
   padding: 0 8px;
 }
-.theme-root .code-container pre::before { content: none; }
+.theme-root .code-container pre::before {
+  content: none;
+}
 .theme-root .editor-code-container .editor-code-gutter {
   position: absolute;
   left: 0;
@@ -632,15 +641,30 @@
   z-index: 1;
   pointer-events: none;
   user-select: none;
-  font: 13pt/1.5 'Maple Mono NF CN', 'Space Mono', monospace;
+  font:
+    13pt / 1.5 "Maple Mono NF CN",
+    "Space Mono",
+    monospace;
   color: #8a8a93;
   background: var(--code-gutter-bg);
   width: 3.6em;
 }
-.editor-code-gutter span { display: block; height: 1.5em; padding-right: 1.1em; text-align: right; }
-.editor-code-gutter span::before { content: attr(data-line); }
-.theme-root .code-container > .highlight > pre { padding-left: 0; counter-reset: code-line; }
-.theme-root .code-container .highlight .line { counter-increment: code-line; }
+.editor-code-gutter span {
+  display: block;
+  height: 1.5em;
+  padding-right: 1.1em;
+  text-align: right;
+}
+.editor-code-gutter span::before {
+  content: attr(data-line);
+}
+.theme-root .code-container > .highlight > pre {
+  padding-left: 0;
+  counter-reset: code-line;
+}
+.theme-root .code-container .highlight .line {
+  counter-increment: code-line;
+}
 .theme-root .code-container .highlight .line::before {
   content: counter(code-line);
   display: inline-block;

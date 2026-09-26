@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { api } from './api/index.js';
-import { useActiveWorkspace, useConfig } from './hooks/queries.js';
-import { useUI } from './store/ui.js';
-import { useHugo } from './store/hugo.js';
-import { initRenderWorker } from './render/useRender.js';
-import { MainShell } from './MainShell.js';
-import { WorkspaceGate } from './features/posts/WorkspaceGate.js';
 import { Toaster } from './components/ui.js';
+import { WorkspaceGate } from './features/posts/WorkspaceGate.js';
+import { useActiveWorkspace, useConfig } from './hooks/queries.js';
+import { MainShell } from './MainShell.js';
+import { initRenderWorker } from './render/useRender.js';
+import { useHugo } from './store/hugo.js';
+import { useUI } from './store/ui.js';
 
 export default function App() {
   const active = useActiveWorkspace();
@@ -19,7 +19,11 @@ export default function App() {
   // Resolve the persisted preference on every system colour-scheme change.
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => document.documentElement.setAttribute('data-app-theme', theme === 'auto' ? (mq.matches ? 'dark' : 'light') : theme);
+    const apply = () =>
+      document.documentElement.setAttribute(
+        'data-app-theme',
+        theme === 'auto' ? (mq.matches ? 'dark' : 'light') : theme,
+      );
     apply();
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);

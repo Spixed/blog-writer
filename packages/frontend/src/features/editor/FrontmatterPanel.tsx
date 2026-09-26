@@ -16,14 +16,15 @@
  * falling off-screen), and a render-time clamp keeps it inside the viewport
  * even when the window shrinks past the stored offset.
  */
-import { useEffect, useReducer, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+
 import type { Lang } from '@blog-writer/shared';
-import { FrontmatterForm } from './FrontmatterForm.js';
-import { useI18n } from '../../i18n/useI18n.js';
-import { useUI } from '../../store/ui.js';
-import type { FmPos } from '../../store/ui.js';
 import { validateFrontmatter } from '@blog-writer/shared';
+import { X } from 'lucide-react';
+import { useEffect, useReducer, useRef, useState } from 'react';
+import { useI18n } from '../../i18n/useI18n.js';
+import type { FmPos } from '../../store/ui.js';
+import { useUI } from '../../store/ui.js';
+import { FrontmatterForm } from './FrontmatterForm.js';
 
 const LANG_LABEL: Record<Lang, string> = { zh: '中文', en: 'English' };
 const PANEL_W = 372;
@@ -84,7 +85,7 @@ export function FrontmatterPanel({
       ro.disconnect();
       window.removeEventListener('resize', bump);
     };
-  }, [bump]);
+  }, []);
 
   useEffect(() => {
     const move = (e: PointerEvent) => {
@@ -136,7 +137,13 @@ export function FrontmatterPanel({
   else style.bottom = Math.min(pos.dy, maxDy);
 
   return (
-    <div className="fm-floater" style={style} role="dialog" aria-label={t('fmPanel')} ref={panelRef}>
+    <div
+      className="fm-floater"
+      style={style}
+      role="dialog"
+      aria-label={t('fmPanel')}
+      ref={panelRef}
+    >
       <div
         className="fm-floater-head"
         onPointerDown={(e) => {

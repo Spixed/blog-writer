@@ -44,7 +44,13 @@ export const FIELD_SCHEMA: FieldSchema[] = [
     required: true,
     group: 'basic',
   },
-  { key: 'description', label: '摘要描述', type: 'textarea', placeholder: '留空则取正文开头', group: 'basic' },
+  {
+    key: 'description',
+    label: '摘要描述',
+    type: 'textarea',
+    placeholder: '留空则取正文开头',
+    group: 'basic',
+  },
   { key: 'draft', label: '草稿', type: 'boolean', default: true, group: 'basic' },
   { key: 'author', label: '作者', type: 'select', optionsFrom: 'authors', group: 'basic' },
   { key: 'featured', label: '精选', type: 'boolean', default: false, group: 'basic' },
@@ -98,7 +104,7 @@ export const isKnownField = (key: string): boolean => FIELD_KEYS.includes(key);
 
 // ---- date helpers ------------------------------------------------------
 
-const DATE_FMT = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})?(?:([+-]\d{2}):?(\d{2}))?$/;
+const _DATE_FMT = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})?(?:([+-]\d{2}):?(\d{2}))?$/;
 
 /** Blog timezone offset in minutes (UTC+8 by default). */
 export const DEFAULT_TZ_OFFSET_MINUTES = 480;
@@ -164,7 +170,14 @@ export function fromDatetimeLocal(local: string): string | null {
   if (Number(y) < 1000) return null;
   // Same semantics as before: the picker's value is browser-local time, and
   // formatDateField serialises it into the blog's fixed +08:00 offset.
-  const d = new Date(Number(y), Number(mo) - 1, Number(dd), Number(hh), Number(mi), Number(ss ?? 0));
+  const d = new Date(
+    Number(y),
+    Number(mo) - 1,
+    Number(dd),
+    Number(hh),
+    Number(mi),
+    Number(ss ?? 0),
+  );
   if (Number.isNaN(d.getTime())) return null;
   return formatDateField(d);
 }
@@ -222,7 +235,8 @@ export interface SlugError {
 export function validateSlug(slug: string): SlugError | null {
   if (!slug) return { code: 'slugEmpty', message: '文件名不能为空' };
   if (slug.length > 100) return { code: 'slugTooLong', message: '文件名过长（最多 100 字符）' };
-  if (!SLUG_RE.test(slug)) return { code: 'slugInvalid', message: '文件名只能包含字母、数字、连字符或下划线' };
+  if (!SLUG_RE.test(slug))
+    return { code: 'slugInvalid', message: '文件名只能包含字母、数字、连字符或下划线' };
   if (/\.{2,}/.test(slug) || slug.includes('/') || slug.includes('\\'))
     return { code: 'slugInvalidChars', message: '文件名包含非法字符' };
   return null;

@@ -7,8 +7,9 @@
  * or a ragged row makes a reorder ambiguous, and the callers refuse to show
  * handles for such tables.
  */
-import { Fragment } from '@tiptap/pm/model';
+
 import type { Node as PMNode } from '@tiptap/pm/model';
+import { Fragment } from '@tiptap/pm/model';
 import type { EditorState, Transaction } from '@tiptap/pm/state';
 
 type Dispatch = (tr: Transaction) => void;
@@ -55,7 +56,8 @@ export function moveTableRow(
 ): boolean {
   const table = state.doc.nodeAt(tablePos);
   if (!table || !canReorder(table)) return false;
-  if (from === to || from < 0 || to < 0 || from >= table.childCount || to >= table.childCount) return false;
+  if (from === to || from < 0 || to < 0 || from >= table.childCount || to >= table.childCount)
+    return false;
   const rows = reorderChildren(table, from, to);
   if (!rows) return false;
   if (dispatch) {

@@ -68,19 +68,31 @@ function extractContent(html: string): string | null {
  * The theme's qq-emoji shortcode also emits inline <script> blocks which the
  * preview deliberately omits, so they are stripped from Hugo's side too. */
 function inlineMath(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/g, '')
-    // Hugo's passthrough keeps the original $ / $$ delimiters in the text, so
-    // restore them around the TeX from the data attribute.
-    .replace(/<(div|span) class="math-(inline|display)" data-math="([^"]*)"><\/\1>/g, (_m, _tag, kind: string, tex: string) => {
-      const d = kind === 'display' ? '$$' : '$';
-      return `${d}${tex.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}${d}`;
-    })
-    .replace(/<div class="more-marker">[^<]*<\/div>/g, '');
+  return (
+    html
+      .replace(/<script[\s\S]*?<\/script>/g, '')
+      // Hugo's passthrough keeps the original $ / $$ delimiters in the text, so
+      // restore them around the TeX from the data attribute.
+      .replace(
+        /<(div|span) class="math-(inline|display)" data-math="([^"]*)"><\/\1>/g,
+        (_m, _tag, kind: string, tex: string) => {
+          const d = kind === 'display' ? '$$' : '$';
+          return `${d}${tex
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')}${d}`;
+        },
+      )
+      .replace(/<div class="more-marker">[^<]*<\/div>/g, '')
+  );
 }
 
 function count(pattern: RegExp, s: string): number {
-  const re = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
+  const re = new RegExp(
+    pattern.source,
+    pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`,
+  );
   let n = 0;
   while (re.exec(s)) n++;
   return n;
@@ -103,7 +115,10 @@ function stripTags(s: string): string {
  * the browser, so their raw text is not comparable. */
 function stripCodeBlocks(html: string, quoted: boolean): string {
   const open = quoted ? '<div class="code-container">' : '<div class=code-container>';
-  return html.replace(new RegExp(`${open.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?<\\/div><\\/div>`, 'g'), '');
+  return html.replace(
+    new RegExp(`${open.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?<\\/div><\\/div>`, 'g'),
+    '',
+  );
 }
 
 /** The editor renders `<!--more-->` as a visible marker div (an editor-only
@@ -157,7 +172,16 @@ function metrics(html: string): Metrics {
   };
 }
 
-const KEY: (keyof Metrics)[] = ['figure', 'code', 'hl', 'qmoji', 'ruby', 'table', 'img', 'blockquote'];
+const KEY: (keyof Metrics)[] = [
+  'figure',
+  'code',
+  'hl',
+  'qmoji',
+  'ruby',
+  'table',
+  'img',
+  'blockquote',
+];
 
 async function main(): Promise<void> {
   const [posts, qmoji] = await Promise.all([readPosts(), readQmoji()]);
@@ -184,14 +208,20 @@ async function main(): Promise<void> {
     }
 
     // 2. Structural comparison against Hugo's built HTML.
-    const builtPath = path.join(BUILT, post.lang === 'en' ? 'en' : '', 'post', post.slug, 'index.html');
+    const builtPath = path.join(
+      BUILT,
+      post.lang === 'en' ? 'en' : '',
+      'post',
+      post.slug,
+      'index.html',
+    );
     let built: string;
     try {
       built = await fs.readFile(builtPath, 'utf8');
     } catch {
       const sourcePath = path.join(BLOG, 'content', post.lang, 'post', `${post.slug}.md`);
       const source = await fs.readFile(sourcePath, 'utf8');
-      if (/^---\s*\r?\n[\s\S]*?^draft:\s*true\s*$/mi.test(source)) {
+      if (/^---\s*\r?\n[\s\S]*?^draft:\s*true\s*$/im.test(source)) {
         skippedDrafts++;
         continue;
       }
@@ -239,7 +269,9 @@ async function main(): Promise<void> {
     console.log('✗ No built Hugo pages were compared');
     problems++;
   }
-  console.log(`\n${posts.length} posts rendered, ${compared} compared with Hugo, ${skippedDrafts} drafts skipped, ${problems} flagged`);
+  console.log(
+    `\n${posts.length} posts rendered, ${compared} compared with Hugo, ${skippedDrafts} drafts skipped, ${problems} flagged`,
+  );
   process.exit(problems > 0 ? 1 : 0);
 }
 

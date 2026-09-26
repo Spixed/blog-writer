@@ -4,8 +4,9 @@
  * `initRenderWorker` must be called once with the site's qmoji mapping before
  * rendering; it is a no-op afterwards (the worker is shared app-wide).
  */
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+
 import type { QmojiEntry } from '@blog-writer/shared';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 export interface RenderState {
   html: string;
@@ -96,8 +97,11 @@ export function initRenderWorker(qmoji: QmojiEntry[]): void {
   currentQmoji = qmoji;
   if (signature === qmojiSignature && worker) return;
   qmojiSignature = signature;
-  try { getWorker().postMessage({ type: 'init', qmoji }); }
-  catch { worker = null; } // renderNow reports unavailable workers as visible errors.
+  try {
+    getWorker().postMessage({ type: 'init', qmoji });
+  } catch {
+    worker = null;
+  } // renderNow reports unavailable workers as visible errors.
   workerRevision++;
   revisionListeners.forEach((listener) => listener());
 }
@@ -123,9 +127,12 @@ export function renderNow(source: string, markers = false): Promise<ResultMsg> {
   });
 }
 
-export function useRender(source: string | undefined, markers = false): RenderState & { retry: () => void } {
-  const workerRevision = useRenderWorkerRevision();
-  const [attempt, setAttempt] = useState(0);
+export function useRender(
+  source: string | undefined,
+  markers = false,
+): RenderState & { retry: () => void } {
+  const _workerRevision = useRenderWorkerRevision();
+  const [_attempt, setAttempt] = useState(0);
   const [state, setState] = useState<RenderState>({
     html: '',
     hasMath: false,
@@ -159,7 +166,7 @@ export function useRender(source: string | undefined, markers = false): RenderSt
         timer.current = null;
       }
     };
-  }, [source, markers, workerRevision, attempt]);
+  }, [source, markers]);
 
   return { ...state, retry: () => setAttempt((n) => n + 1) };
 }

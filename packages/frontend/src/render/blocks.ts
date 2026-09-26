@@ -150,7 +150,10 @@ function consumeBlock(lines: string[], i: number): number {
           const next = lines[n];
           const ind = next.length - next.trimStart().length;
           keeps =
-            LIST_ITEM.test(next) || QUOTE.test(next) || ind >= indent + 2 || !startsBlock(next, lines[n + 1]);
+            LIST_ITEM.test(next) ||
+            QUOTE.test(next) ||
+            ind >= indent + 2 ||
+            !startsBlock(next, lines[n + 1]);
         }
         if (!keeps) break;
         k = n;
@@ -279,7 +282,8 @@ export function editBlockText(src: string, idx: number, newText: string): string
   while (ci < b.end && isBlank(lines[ci])) ci++;
   // Whatever the user types is written verbatim; only line breaks are flattened
   // (a rendered text edit is a single line by construction).
-  lines[ci] = `${st.prefix}${newText.replace(/\r?\n/g, ' ')}${lines[ci].endsWith('\r') ? '\r' : ''}`;
+  lines[ci] =
+    `${st.prefix}${newText.replace(/\r?\n/g, ' ')}${lines[ci].endsWith('\r') ? '\r' : ''}`;
   return lines.join('\n');
 }
 

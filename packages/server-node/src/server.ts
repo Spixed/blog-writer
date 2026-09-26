@@ -1,9 +1,5 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import type { WebSocket } from 'ws';
-import Fastify, { type FastifyInstance } from 'fastify';
-import cors from '@fastify/cors';
-import websocket from '@fastify/websocket';
 import type {
   HugoResult,
   Lang,
@@ -12,10 +8,14 @@ import type {
   WorkspaceConfig,
   WorkspaceInfo,
 } from '@blog-writer/shared';
+import cors from '@fastify/cors';
+import websocket from '@fastify/websocket';
+import Fastify, { type FastifyInstance } from 'fastify';
+import type { WebSocket } from 'ws';
+import { WorkspaceStore } from './config-store.js';
 import { HugoManager } from './hugo.js';
 import { PostStore } from './posts.js';
 import { Site } from './site.js';
-import { WorkspaceStore } from './config-store.js';
 import { Watcher } from './watcher.js';
 
 interface ActiveWorkspace {
@@ -346,7 +346,13 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
             if (e.isDirectory()) await walk(full, relPath);
             else if (e.isFile() && /\.(png|jpe?g|gif|webp|svg|avif|mp4|webm)$/i.test(e.name)) {
               const st = await fs.stat(full);
-              items.push({ name: e.name, relPath, size: st.size, modified: st.mtimeMs, url: `/${relPath}` });
+              items.push({
+                name: e.name,
+                relPath,
+                size: st.size,
+                modified: st.mtimeMs,
+                url: `/${relPath}`,
+              });
             }
           }
         };
@@ -359,28 +365,52 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
     }),
   );
 
-  app.post('/api/media', wrap(async (req) => {
-    const ctx = await requireActive();
-    const body = req.body ?? {};
-    const dirName = typeof body.dir === 'string' ? body.dir : '';
-    const filename = typeof body.filename === 'string' ? path.basename(body.filename) : '';
-    if (!filename || filename === '.' || filename === '..' || /[<>:"/\\|?*\x00-\x1f]/.test(filename) || !/\.(png|jpe?g|gif|webp|svg|avif|mp4|webm)$/i.test(filename)) throw new Error('不支持的媒体格式');
-    const raw = typeof body.data === 'string' ? body.data : '';
-    if (!raw || raw.length > 80 * 1024 * 1024) throw new Error('文件过大或为空');
-    const dir = safeStaticPath(ctx.site, dirName);
-    await fs.mkdir(dir, { recursive: true });
-    let target = path.join(dir, filename);
-    const ext = path.extname(filename), stem = path.basename(filename, ext);
-    let n = 1;
-    while (true) { try { await fs.access(target); target = path.join(dir, `${stem}-${n++}${ext}`); } catch { break; } }
-    const data = Buffer.from(raw, 'base64');
-    if (data.byteLength > 50 * 1024 * 1024) throw new Error('文件过大');
-    await fs.writeFile(target, data, { flag: 'wx' });
-    const st = await fs.stat(target);
-    const relPath = path.relative(ctx.site.staticDir, target).replace(/\\/g, '/');
-    const item: MediaItem = { name: path.basename(target), relPath, size: st.size, modified: st.mtimeMs, url: `/${relPath}` };
-    return { item };
-  }));
+  app.post(
+    '/api/media',
+    wrap(async (req) => {
+      const ctx = await requireActive();
+      const body = req.body ?? {};
+      const dirName = typeof body.dir === 'string' ? body.dir : '';
+      const filename = typeof body.filename === 'string' ? path.basename(body.filename) : '';
+      if (
+        !filename ||
+        filename === '.' ||
+        filename === '..' ||
+        /[<>:"/\\|?*\x00-\x1f]/.test(filename) ||
+        !/\.(png|jpe?g|gif|webp|svg|avif|mp4|webm)$/i.test(filename)
+      )
+        throw new Error('不支持的媒体格式');
+      const raw = typeof body.data === 'string' ? body.data : '';
+      if (!raw || raw.length > 80 * 1024 * 1024) throw new Error('文件过大或为空');
+      const dir = safeStaticPath(ctx.site, dirName);
+      await fs.mkdir(dir, { recursive: true });
+      let target = path.join(dir, filename);
+      const ext = path.extname(filename),
+        stem = path.basename(filename, ext);
+      let n = 1;
+      while (true) {
+        try {
+          await fs.access(target);
+          target = path.join(dir, `${stem}-${n++}${ext}`);
+        } catch {
+          break;
+        }
+      }
+      const data = Buffer.from(raw, 'base64');
+      if (data.byteLength > 50 * 1024 * 1024) throw new Error('文件过大');
+      await fs.writeFile(target, data, { flag: 'wx' });
+      const st = await fs.stat(target);
+      const relPath = path.relative(ctx.site.staticDir, target).replace(/\\/g, '/');
+      const item: MediaItem = {
+        name: path.basename(target),
+        relPath,
+        size: st.size,
+        modified: st.mtimeMs,
+        url: `/${relPath}`,
+      };
+      return { item };
+    }),
+  );
 
   app.delete(
     '/api/media/*',
@@ -445,11 +475,14 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
   return { app, close };
 }
 
-async function collectTaxonomy(posts: PostStore): Promise<{ categories: string[]; tags: string[] }> {
+async function collectTaxonomy(
+  posts: PostStore,
+): Promise<{ categories: string[]; tags: string[] }> {
   const cats = new Set<string>();
   const tags = new Set<string>();
   for await (const { frontmatter } of posts.scanAll()) {
-    if (Array.isArray(frontmatter.categories)) frontmatter.categories.forEach((c) => cats.add(String(c)));
+    if (Array.isArray(frontmatter.categories))
+      frontmatter.categories.forEach((c) => cats.add(String(c)));
     if (Array.isArray(frontmatter.tags)) frontmatter.tags.forEach((t) => tags.add(String(t)));
   }
   return {

@@ -8,10 +8,11 @@
  * ambiguous. All coordinates are scroller-local (content box), matching
  * BlockHandle.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+
 import type { Editor } from '@tiptap/react';
-import { canReorder, moveTableColumn, moveTableRow } from './extensions/table-move.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createDragScroller } from './drag-autoscroll.js';
+import { canReorder, moveTableColumn, moveTableRow } from './extensions/table-move.js';
 
 interface TableLayout {
   tablePos: number;
@@ -77,7 +78,10 @@ export function TableDrag({
       if (rowEls.length !== node.childCount) return null;
       const cellEls = rowEls[0] ? [...rowEls[0].children] : [];
       if (cellEls.length !== (node.firstChild?.childCount ?? 0)) return null;
-      const local = (r: DOMRect) => ({ top: r.top - sr.top + sc.scrollTop, left: r.left - sr.left });
+      const local = (r: DOMRect) => ({
+        top: r.top - sr.top + sc.scrollTop,
+        left: r.left - sr.left,
+      });
       const tRect = local(tr);
       return {
         tablePos,
@@ -100,13 +104,10 @@ export function TableDrag({
     [editor, scroller],
   );
 
-  const apply = useCallback(
-    (t: TableLayout | null) => {
-      tableRef.current = t;
-      setTable(t);
-    },
-    [],
-  );
+  const apply = useCallback((t: TableLayout | null) => {
+    tableRef.current = t;
+    setTable(t);
+  }, []);
 
   /** True when the pointer sits on top of a rendered grip: the grips live
    *  outside the table box, and losing them there makes dragging (which must
@@ -140,7 +141,15 @@ export function TableDrag({
       // Off the table: keep the grips alive while the pointer travels across
       // the grip strip towards them.
       const current = tableRef.current;
-      if (current && nearGrip(current, e.clientX - sc.getBoundingClientRect().left, e.clientY - sc.getBoundingClientRect().top + sc.scrollTop)) return;
+      if (
+        current &&
+        nearGrip(
+          current,
+          e.clientX - sc.getBoundingClientRect().left,
+          e.clientY - sc.getBoundingClientRect().top + sc.scrollTop,
+        )
+      )
+        return;
       apply(null);
     };
     const onLeave = () => {
@@ -168,12 +177,20 @@ export function TableDrag({
   useEffect(() => {
     const sc = scroller.current;
     if (!sc) return;
-    const hintFor = (t: TableLayout, kind: 'row' | 'col', clientX: number, clientY: number): DropHint | null => {
+    const hintFor = (
+      t: TableLayout,
+      kind: 'row' | 'col',
+      clientX: number,
+      clientY: number,
+    ): DropHint | null => {
       const sr = sc.getBoundingClientRect();
       const x = clientX - sr.left;
       const y = clientY - sr.top + sc.scrollTop;
       const inside =
-        x >= t.left - 16 && x <= t.left + t.width + 16 && y >= t.top - 24 && y <= t.top + t.height + 24;
+        x >= t.left - 16 &&
+        x <= t.left + t.width + 16 &&
+        y >= t.top - 24 &&
+        y <= t.top + t.height + 24;
       if (!inside) return null;
       const index = indexAt(t, kind, x, y);
       let at: number;
@@ -184,11 +201,15 @@ export function TableDrag({
       }
       return { kind, index, at };
     };
-    const scrollerCtl = createDragScroller(() => scroller.current, () => {
-      // Content moved under a stationary pointer: re-derive the indicator.
-      const d = drag.current;
-      if (d && tableRef.current) setHint(hintFor(tableRef.current, d.kind, scrollerCtl.x, scrollerCtl.y));
-    });
+    const scrollerCtl = createDragScroller(
+      () => scroller.current,
+      () => {
+        // Content moved under a stationary pointer: re-derive the indicator.
+        const d = drag.current;
+        if (d && tableRef.current)
+          setHint(hintFor(tableRef.current, d.kind, scrollerCtl.x, scrollerCtl.y));
+      },
+    );
     const onDragOver = (e: DragEvent) => {
       const d = drag.current;
       if (!d) return;
@@ -237,7 +258,7 @@ export function TableDrag({
       sc.removeEventListener('drop', onDrop, true);
       sc.removeEventListener('dragend', onDragEnd);
     };
-  }, [editor, scroller]);
+  }, [editor, scroller, indexAt]);
 
   if (!table && !hint) return null;
 

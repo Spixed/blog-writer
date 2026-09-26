@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { useEffect, useId, useRef } from 'react';
-import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { create } from 'zustand';
 
 /* ---- toast store ------------------------------------------------------ */
 interface ToastState {
@@ -55,25 +55,57 @@ export function Dialog({
     const previous = document.activeElement as HTMLElement | null;
     root.current?.querySelector<HTMLElement>('input, textarea, button')?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented && !(event.target as HTMLElement).closest('[role="menu"]')) {
+      if (
+        event.key === 'Escape' &&
+        !event.defaultPrevented &&
+        !(event.target as HTMLElement).closest('[role="menu"]')
+      ) {
         event.preventDefault();
         closeRef.current();
       }
       if (event.key !== 'Tab') return;
-      const items = [...(root.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]') ?? [])]
-        .filter((item) => item.getClientRects().length);
+      const items = [
+        ...(root.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]',
+        ) ?? []),
+      ].filter((item) => item.getClientRects().length);
       const first = items[0];
       const last = items.at(-1);
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
-    return () => { document.removeEventListener('keydown', onKeyDown); previous?.focus(); };
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previous?.focus();
+    };
   }, []);
   return (
-    <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div ref={root} className="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} style={width ? { maxWidth: width } : undefined}>
-        <div className="dialog-head"><h2 id={titleId}>{title}</h2><button type="button" className="dialog-close" aria-label="关闭" onClick={onClose}><X size={17} /></button></div>
+    <div
+      className="dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={root}
+        className="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        style={width ? { maxWidth: width } : undefined}
+      >
+        <div className="dialog-head">
+          <h2 id={titleId}>{title}</h2>
+          <button type="button" className="dialog-close" aria-label="关闭" onClick={onClose}>
+            <X size={17} />
+          </button>
+        </div>
         {children}
       </div>
     </div>

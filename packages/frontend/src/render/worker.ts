@@ -5,7 +5,7 @@
  * (it is needed to resolve `{{< qq-emoji >}}` calls).
  */
 import type { QmojiEntry } from '@blog-writer/shared';
-import { renderSource, type RenderContext, type RenderOutput } from './md.js';
+import { type RenderContext, type RenderOutput, renderSource } from './md.js';
 
 interface InitMsg {
   type: 'init';

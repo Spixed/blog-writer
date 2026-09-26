@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import type { Lang } from '@blog-writer/shared';
 import {
   defaultFrontmatter,
   fromDatetimeLocal,
@@ -6,9 +6,9 @@ import {
   toDatetimeLocal,
   validateSlug,
 } from '@blog-writer/shared';
-import type { Lang } from '@blog-writer/shared';
-import { Dialog, DialogActions, TagInput, Toggle, useToasts } from '../../components/ui.js';
+import { useEffect, useState } from 'react';
 import { SelectMenu } from '../../components/SelectMenu.js';
+import { Dialog, DialogActions, TagInput, Toggle, useToasts } from '../../components/ui.js';
 import { useConfig, useTaxonomy, useWritePost } from '../../hooks/queries.js';
 import { useI18n } from '../../i18n/useI18n.js';
 
@@ -87,9 +87,18 @@ export function NewPostDialog({
         </label>
         <label className="field">
           <span>{t('fm.author')}</span>
-          <SelectMenu label={t('fm.author')} value={String(fm.author ?? '')}
+          <SelectMenu
+            label={t('fm.author')}
+            value={String(fm.author ?? '')}
             onChange={(author) => setFm({ ...fm, author })}
-            options={[{ value: '', label: '—' }, ...(config.data?.authors ?? []).map((a) => ({ value: a.key, label: a.nickname ?? a.name }))]} />
+            options={[
+              { value: '', label: '—' },
+              ...(config.data?.authors ?? []).map((a) => ({
+                value: a.key,
+                label: a.nickname ?? a.name,
+              })),
+            ]}
+          />
         </label>
         <div style={{ display: 'flex', gap: 16 }}>
           <Toggle

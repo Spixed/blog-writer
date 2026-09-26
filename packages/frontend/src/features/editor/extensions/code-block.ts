@@ -24,11 +24,13 @@ export const EditorCodeBlock = CodeBlockLowlight.extend({
         code.className = next.attrs.language ? `language-${next.attrs.language}` : '';
         const count = next.textContent.split('\n').length;
         if (count !== lineCount) {
-          gutter.replaceChildren(...Array.from({ length: count }, (_, i) => {
-            const line = document.createElement('span');
-            line.dataset.line = String(i + 1);
-            return line;
-          }));
+          gutter.replaceChildren(
+            ...Array.from({ length: count }, (_, i) => {
+              const line = document.createElement('span');
+              line.dataset.line = String(i + 1);
+              return line;
+            }),
+          );
           lineCount = count;
         }
       };

@@ -59,8 +59,20 @@ export const SHORTCODES: Record<ShortcodeName, ShortcodeSpec> = {
     hasInner: false,
     icon: 'E',
     args: [
-      { name: 'name', label: '表情名称', type: 'emoji', required: true, help: '可带 / 前缀，如 "微笑" 或 "/色"' },
-      { name: 'mode', label: '模式', type: 'select', default: 'inline', options: ['inline', 'block'] },
+      {
+        name: 'name',
+        label: '表情名称',
+        type: 'emoji',
+        required: true,
+        help: '可带 / 前缀，如 "微笑" 或 "/色"',
+      },
+      {
+        name: 'mode',
+        label: '模式',
+        type: 'select',
+        default: 'inline',
+        options: ['inline', 'block'],
+      },
     ],
   },
   ruby: {
@@ -76,7 +88,11 @@ export const SHORTCODES: Record<ShortcodeName, ShortcodeSpec> = {
   },
 };
 
-export const SHORTCODE_LIST: ShortcodeSpec[] = [SHORTCODES.hl, SHORTCODES['qq-emoji'], SHORTCODES.ruby];
+export const SHORTCODE_LIST: ShortcodeSpec[] = [
+  SHORTCODES.hl,
+  SHORTCODES['qq-emoji'],
+  SHORTCODES.ruby,
+];
 
 /** Regex matching a Hugo shortcode call: {{< name args >}} or {{% name args %}} */
 export const SHORTCODE_RE = /\{\{[<%]\s*(\w[\w-]*)\s*([^%>]*?)[%>]\}\}/;
@@ -85,7 +101,8 @@ export const QMOJI_CDN = 'https://cdn.jsdelivr.net/gh/Spixed/Qmoji@main/res';
 
 /** Resolve a qmoji entry to its asset URL (mirrors themes/polymer/.../qq-emoji.html). */
 export function qmojiUrl(entry: { emojiId: string; emojiType: number }): string {
-  const file = entry.emojiType === 2 ? 'lottie.json' : entry.emojiType === 1 ? 'apng.png' : 'thumb.png';
+  const file =
+    entry.emojiType === 2 ? 'lottie.json' : entry.emojiType === 1 ? 'apng.png' : 'thumb.png';
   return `${QMOJI_CDN}/${entry.emojiId}/${file}`;
 }
 

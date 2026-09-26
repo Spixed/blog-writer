@@ -3,7 +3,7 @@
  * (partials/mathjax.html, assets/js/main.js). Shared by the preview pane and
  * the WYSIWYG raw-block node views so the two never load them twice.
  */
-import type { MathJaxObject, LottiePlayer, LottieAnimation } from '../components/external.js';
+import type { LottieAnimation, LottiePlayer, MathJaxObject } from '../components/external.js';
 
 let mjPromise: Promise<MathJaxObject | null> | null = null;
 let mathQueue: Promise<unknown> = Promise.resolve();
@@ -41,12 +41,20 @@ export function loadMathJax(): Promise<MathJaxObject | null> {
         typeset: false,
         ready: () => {
           w.MathJax!.startup.defaultReady();
-          w.MathJax!.startup.promise.then(() => { clearTimeout(timeout); resolve(w.MathJax!); }).catch(fail);
+          w.MathJax!.startup.promise.then(() => {
+            clearTimeout(timeout);
+            resolve(w.MathJax!);
+          }).catch(fail);
         },
       },
     } as unknown as MathJaxObject;
     const s = document.createElement('script');
-    const fail = () => { clearTimeout(timeout); s.remove(); mjPromise = null; resolve(null); };
+    const fail = () => {
+      clearTimeout(timeout);
+      s.remove();
+      mjPromise = null;
+      resolve(null);
+    };
     const timeout = setTimeout(fail, 20_000);
     s.onerror = fail;
     s.src = 'https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js';
@@ -69,9 +77,17 @@ export function loadLottie(): Promise<LottiePlayer | null> {
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js';
     s.async = true;
-    const fail = () => { clearTimeout(timeout); s.remove(); lottiePromise = null; resolve(null); };
+    const fail = () => {
+      clearTimeout(timeout);
+      s.remove();
+      lottiePromise = null;
+      resolve(null);
+    };
     const timeout = setTimeout(fail, 20_000);
-    s.onload = () => { clearTimeout(timeout); resolve(w.lottie ?? null); };
+    s.onload = () => {
+      clearTimeout(timeout);
+      resolve(w.lottie ?? null);
+    };
     s.onerror = fail;
     document.head.appendChild(s);
   });
@@ -93,18 +109,21 @@ export function typesetMath(root: HTMLElement): void {
     n.textContent = n.classList.contains('math-display') ? `\\[${tex}\\]` : `\\(${tex}\\)`;
   });
   const ready = loadMathJax();
-  mathQueue = mathQueue.catch(() => undefined).then(() => ready).then(async (mj) => {
-    if (!mj) return;
-    try {
-      if (!root.isConnected) return;
-      // Clear only this subtree's previous MathJax state before reusing it.
-      mj.typesetClear?.([root]);
-      mj.texReset?.();
-      await mj.typesetPromise([root]);
-    } catch {
-      // typeset errors are non-fatal for the preview
-    }
-  });
+  mathQueue = mathQueue
+    .catch(() => undefined)
+    .then(() => ready)
+    .then(async (mj) => {
+      if (!mj) return;
+      try {
+        if (!root.isConnected) return;
+        // Clear only this subtree's previous MathJax state before reusing it.
+        mj.typesetClear?.([root]);
+        mj.texReset?.();
+        await mj.typesetPromise([root]);
+      } catch {
+        // typeset errors are non-fatal for the preview
+      }
+    });
 }
 
 /**
@@ -129,7 +148,9 @@ function measureDropCap(element: HTMLElement): string | undefined {
 
 export function dropCapMeasurements(root: HTMLElement): Map<HTMLElement, string> {
   const result = new Map<HTMLElement, string>();
-  const content = root.classList.contains('content') ? root : root.querySelector<HTMLElement>('.content');
+  const content = root.classList.contains('content')
+    ? root
+    : root.querySelector<HTMLElement>('.content');
   if (!content) return result;
   const firstP = content.querySelector<HTMLElement>(':scope > p:first-of-type');
   const eligible = new Set<HTMLElement>();
@@ -151,7 +172,8 @@ export function adjustDropCap(root: HTMLElement): void {
     if (!measurements.has(el)) el.style.removeProperty('--drop-cap-size');
   });
   measurements.forEach((size, el) => {
-    if (el.style.getPropertyValue('--drop-cap-size') !== size) el.style.setProperty('--drop-cap-size', size);
+    if (el.style.getPropertyValue('--drop-cap-size') !== size)
+      el.style.setProperty('--drop-cap-size', size);
   });
 }
 
@@ -171,7 +193,10 @@ export function animateLottie(root: HTMLElement): (() => void) | undefined {
   const visibility = () => {
     animations.forEach((animation, container) => {
       animation.pause();
-      if (!document.hidden) { observer.unobserve(container); observer.observe(container); }
+      if (!document.hidden) {
+        observer.unobserve(container);
+        observer.observe(container);
+      }
     });
   };
   document.addEventListener('visibilitychange', visibility);
@@ -201,7 +226,10 @@ export function animateLottie(root: HTMLElement): (() => void) | undefined {
     cancelled = true;
     observer.disconnect();
     document.removeEventListener('visibilitychange', visibility);
-    animations.forEach((animation, container) => { animation.destroy(); delete container.dataset.lottieInitialized; });
+    animations.forEach((animation, container) => {
+      animation.destroy();
+      delete container.dataset.lottieInitialized;
+    });
     animations.clear();
   };
 }

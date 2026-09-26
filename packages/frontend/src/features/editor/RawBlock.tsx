@@ -9,16 +9,17 @@
  * toolbar) opens an inline source editor; nothing else in the document is
  * touched.
  */
-import { useEffect, useRef, useState } from 'react';
+
+import { mergeAttributes, Node } from '@tiptap/core';
+import { type NodeViewProps, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Node, mergeAttributes } from '@tiptap/core';
-import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
-import { renderNow, useRenderWorkerRevision } from '../../render/useRender.js';
-import { animateLottie, typesetMath } from '../../render/external-scripts.js';
+import { useEffect, useRef, useState } from 'react';
+import { useResolvedTheme } from '../../hooks/useResolvedTheme.js';
 import { useI18n } from '../../i18n/useI18n.js';
 import { modLabel } from '../../platform.js';
-import { useResolvedTheme } from '../../hooks/useResolvedTheme.js';
+import { animateLottie, typesetMath } from '../../render/external-scripts.js';
 import { resolveMediaHtml } from '../../render/media-url.js';
+import { renderNow, useRenderWorkerRevision } from '../../render/useRender.js';
 
 export const RawBlock = Node.create({
   name: 'rawBlock',
@@ -53,14 +54,14 @@ export const RawBlock = Node.create({
 function RawBlockView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
   const { t } = useI18n();
   const theme = useResolvedTheme();
-  const workerRevision = useRenderWorkerRevision();
+  const _workerRevision = useRenderWorkerRevision();
   const source = String(node.attrs.source ?? '');
   const [html, setHtml] = useState('');
   const [renderError, setRenderError] = useState('');
   const [hasMath, setHasMath] = useState(false);
   const [editing, setEditing] = useState(false);
   const [rendering, setRendering] = useState(true);
-  const [attempt, setAttempt] = useState(0);
+  const [_attempt, setAttempt] = useState(0);
   const [draft, setDraft] = useState(source);
   const bodyRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -83,17 +84,17 @@ function RawBlockView({ node, updateAttributes, deleteNode, selected }: NodeView
     return () => {
       cancelled = true;
     };
-  }, [source, workerRevision, attempt]);
+  }, [source]);
 
   useEffect(() => {
     const el = bodyRef.current;
     if (el && hasMath && !editing) typesetMath(el);
-  }, [html, hasMath, editing]);
+  }, [hasMath, editing]);
 
   useEffect(() => {
     const el = bodyRef.current;
     if (el) return animateLottie(el);
-  }, [html, editing]);
+  }, []);
 
   useEffect(() => {
     if (editing) {
@@ -140,12 +141,12 @@ function RawBlockView({ node, updateAttributes, deleteNode, selected }: NodeView
   }
 
   return (
-      <NodeViewWrapper
-        className={`raw-block${selected ? ' selected' : ''}`}
-        contentEditable={false}
-        data-source-length={source.length}
-        data-render-error={renderError || undefined}
-      >
+    <NodeViewWrapper
+      className={`raw-block${selected ? ' selected' : ''}`}
+      contentEditable={false}
+      data-source-length={source.length}
+      data-render-error={renderError || undefined}
+    >
       <div className="raw-block-toolbar" onMouseDown={stop}>
         <button title={t('editSource')} onMouseDown={stop} onClick={() => setEditing(true)}>
           <Pencil size={15} aria-hidden="true" />
@@ -154,17 +155,26 @@ function RawBlockView({ node, updateAttributes, deleteNode, selected }: NodeView
           <Trash2 size={15} aria-hidden="true" />
         </button>
       </div>
-      <div
-        className="raw-block-body theme-root"
-        data-theme={theme === 'dark' ? 'dark' : 'light'}
-      >
-          <div
-            className="content"
-            ref={bodyRef}
-            dangerouslySetInnerHTML={{ __html: resolveMediaHtml(html) }}
-          />
-          {rendering && !html && <div className="raw-block-placeholder"><span>渲染中</span><pre>{source}</pre></div>}
-          {renderError && <div className="raw-block-error" role="alert">{renderError} <button type="button" onClick={() => setAttempt((n) => n + 1)}>重新渲染</button></div>}
+      <div className="raw-block-body theme-root" data-theme={theme === 'dark' ? 'dark' : 'light'}>
+        <div
+          className="content"
+          ref={bodyRef}
+          dangerouslySetInnerHTML={{ __html: resolveMediaHtml(html) }}
+        />
+        {rendering && !html && (
+          <div className="raw-block-placeholder">
+            <span>渲染中</span>
+            <pre>{source}</pre>
+          </div>
+        )}
+        {renderError && (
+          <div className="raw-block-error" role="alert">
+            {renderError}{' '}
+            <button type="button" onClick={() => setAttempt((n) => n + 1)}>
+              重新渲染
+            </button>
+          </div>
+        )}
       </div>
     </NodeViewWrapper>
   );

@@ -5,12 +5,12 @@
  * theme's `?width=` / `?height=` query params become an inline style, mirroring
  * the theme's own render-image hook.
  */
-import { Node, mergeAttributes } from '@tiptap/core';
-import { useEffect, useRef, useState } from 'react';
-import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
+import { mergeAttributes, Node } from '@tiptap/core';
+import { type NodeViewProps, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import type { CSSProperties } from 'react';
-import type { CommandCtx } from './commands.js';
+import { useEffect, useRef, useState } from 'react';
 import { resolveMediaUrl } from '../../../render/media-url.js';
+import type { CommandCtx } from './commands.js';
 
 /** Width/height query params -> inline style, mirroring render-image.html. */
 function imageStyle(src: string): string {
@@ -90,7 +90,9 @@ function ImageView({ node, updateAttributes, selected }: NodeViewProps) {
   const title = String(node.attrs.title ?? '');
   const [caption, setCaption] = useState(alt);
   const composing = useRef(false);
-  useEffect(() => { if (!composing.current) setCaption(alt); }, [alt]);
+  useEffect(() => {
+    if (!composing.current) setCaption(alt);
+  }, [alt]);
   const query = new URLSearchParams(src.split('?')[1] ?? '');
   const dimension = (name: string) => {
     const value = query.get(name);
@@ -116,7 +118,9 @@ function ImageView({ node, updateAttributes, selected }: NodeViewProps) {
         value={caption}
         placeholder="Caption"
         aria-label="Image caption"
-        onCompositionStart={() => { composing.current = true; }}
+        onCompositionStart={() => {
+          composing.current = true;
+        }}
         onCompositionEnd={(event) => {
           composing.current = false;
           setCaption(event.currentTarget.value);
@@ -126,7 +130,9 @@ function ImageView({ node, updateAttributes, selected }: NodeViewProps) {
           setCaption(event.target.value);
           if (!composing.current) updateAttributes({ alt: event.target.value });
         }}
-        onBlur={() => { if (caption !== alt) updateAttributes({ alt: caption }); }}
+        onBlur={() => {
+          if (caption !== alt) updateAttributes({ alt: caption });
+        }}
         onMouseDown={(event) => event.stopPropagation()}
       />
     </NodeViewWrapper>

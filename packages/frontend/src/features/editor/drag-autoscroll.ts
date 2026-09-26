@@ -21,10 +21,16 @@ export function createDragScroller(getScroller: () => HTMLElement | null, onScro
     if (el) {
       const r = el.getBoundingClientRect();
       // pointer in the top band -> scroll up (negative), bottom band -> down
-      const speed = lastY < r.top + EDGE ? -Math.ceil((r.top + EDGE - lastY) / 4)
-        : lastY > r.bottom - EDGE ? Math.ceil((lastY - (r.bottom - EDGE)) / 4)
-          : 0;
-      if (speed) { el.scrollTop += speed; onScroll(); }
+      const speed =
+        lastY < r.top + EDGE
+          ? -Math.ceil((r.top + EDGE - lastY) / 4)
+          : lastY > r.bottom - EDGE
+            ? Math.ceil((lastY - (r.bottom - EDGE)) / 4)
+            : 0;
+      if (speed) {
+        el.scrollTop += speed;
+        onScroll();
+      }
     }
     raf = requestAnimationFrame(step);
   };
@@ -34,10 +40,17 @@ export function createDragScroller(getScroller: () => HTMLElement | null, onScro
     dragover(e: DragEvent) {
       lastX = e.clientX;
       lastY = e.clientY;
-      if (!active) { active = true; step(); }
+      if (!active) {
+        active = true;
+        step();
+      }
     },
-    get x() { return lastX; },
-    get y() { return lastY; },
+    get x() {
+      return lastX;
+    },
+    get y() {
+      return lastY;
+    },
     stop() {
       active = false;
       cancelAnimationFrame(raf);
