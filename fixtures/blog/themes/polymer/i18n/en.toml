@@ -1,0 +1,41 @@
+[all_stories]
+other = "ALL STORIES"
+
+[archives]
+other = "ARCHIVES"
+
+[links]
+other = "LINKS"
+
+[on_this_page]
+other = "ON THIS PAGE"
+
+[read_next]
+other = "NEXT"
+
+[read_prev]
+other = "PREV"
+
+[by]
+other = "BY"
+
+[math_error]
+other = "Math Render Error"
+
+[categories]
+other = "CATEGORIES"
+
+[tags]
+other = "TAGS"
+
+[about]
+other = "ABOUT"
+
+[authors]
+other = "AUTHORS"
+
+[category]
+other = "CATEGORY"
+
+[tag]
+other = "TAG"

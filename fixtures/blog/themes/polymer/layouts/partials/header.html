@@ -1,0 +1,56 @@
+<header>
+    <a href="{{ .Site.BaseURL | relLangURL }}" class="logo">
+        <img src="{{ .Site.Params.favicon | default (printf "//ui-avatars.com/api/?name=%s&background=random&rounded=true" (.Site.Title | urlquery)) | relURL }}" 
+            alt="logo" style="height: 1.2em; vertical-align: text-bottom;">
+        {{ range (split .Site.Title ".") }}
+        {{ . }}{{ if not (last 1 (split $.Site.Title ".")) }}<br>{{ end }}
+        {{ end }}
+    </a>
+    
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav">
+        <a href="{{ "archives" | relLangURL }}" class="nav-link">{{ T "archives" | default "ARCHIVES" }}</a>
+        <a href="{{ "categories" | relLangURL }}" class="nav-link">{{ T "categories" | default "CATEGORIES" }}</a>
+        <a href="{{ "tags" | relLangURL }}" class="nav-link">{{ T "tags" | default "TAGS" }}</a>
+        <a href="{{ "links" | relLangURL }}" class="nav-link">{{ T "links" | default "LINKS" }}</a>
+        <a href="{{ "about" | relLangURL }}" class="nav-link">{{ T "about" | default "ABOUT" }}</a>
+    </nav>
+    
+    <!-- Mobile Menu Button -->
+    <button class="menu-btn" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </button>
+    
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-btn" onclick="toggleMenu()">×</button>
+        <nav>
+            <a href="{{ "archives" | relLangURL }}">{{ T "archives" | default "ARCHIVES" }}</a>
+            <a href="{{ "categories" | relLangURL }}">{{ T "categories" | default "CATEGORIES" }}</a>
+            <a href="{{ "tags" | relLangURL }}">{{ T "tags" | default "TAGS" }}</a>
+            <a href="{{ "links" | relLangURL }}">{{ T "links" | default "LINKS" }}</a>
+            <a href="{{ "about" | relLangURL }}">{{ T "about" | default "ABOUT" }}</a>
+        </nav>
+        
+        {{ if .IsPage }}
+        <div class="mobile-toc" style="padding: 1rem 2rem; text-align: left;">
+            <div style="font-family: 'Space Mono'; font-weight: bold; margin-bottom: 1rem; opacity: 0.6;">TABLE OF CONTENTS</div>
+            <div class="toc-content" onclick="toggleMenu()">
+                {{ .TableOfContents }}
+            </div>
+        </div>
+        {{ end }}
+
+        <div class="mobile-controls">
+            <!-- Mobile Toggles moved here -->
+             <button class="btn-toggle" onclick="toggleTheme()" id="theme-btn-mobile">AUTO</button>
+            {{ if .IsTranslated }}
+                {{ range .Translations }}
+                <a href="{{ .Permalink }}" class="btn-toggle" style="text-decoration: none;">
+                    {{ if eq .Language.Lang "en" }}EN{{ else if eq .Language.Lang "zh" }}CN{{ else }}{{ .Language.Lang | upper }}{{ end }}
+                </a>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+</header>

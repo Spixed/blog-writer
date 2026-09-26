@@ -1,0 +1,10 @@
+{{- $color := .Get 0 | default "blue" -}}
+{{- $colorMap := dict "orange" "#FF3D00" "yellow" "#FFD600" "blue" "#2979FF" "green" "#00E676" -}}
+{{- $textColor := index $colorMap $color | default "#2979FF" -}}
+{{- if findRE "\n" .Inner -}}
+<div class="hl-shortcode-block" style="color: {{ $textColor }}; font-weight: bold; border-left: 4px solid {{ $textColor }}; padding-left: 1rem; margin: 1rem 0;">
+    {{- .Inner | markdownify -}}
+</div>
+{{- else -}}
+<span class="hl-shortcode" style="color: {{ $textColor }}; font-weight: bold;">{{- .Inner | markdownify -}}</span>
+{{- end -}}

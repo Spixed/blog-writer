@@ -1,0 +1,11 @@
+{{ define "main" }}
+<div style="min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+    <h1 style="font-size: 8rem; line-height: 1; margin: 0; position: relative;">
+        404
+        <div class="ink-blob" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: var(--red); z-index: -1; opacity: 0.2;"></div>
+    </h1>
+    <h2 style="font-size: 2rem; margin-top: 2rem; text-transform: uppercase;">Page Not Found</h2>
+    <p style="font-family: 'Space Mono'; margin: 2rem 0; opacity: 0.7;">The content you are looking for has been moved or deleted.</p>
+    <a href="{{ .Site.BaseURL | relLangURL }}" class="btn-toggle" style="text-decoration: none;">RETURN HOME</a>
+</div>
+{{ end }}

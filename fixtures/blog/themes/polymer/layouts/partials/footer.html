@@ -1,0 +1,16 @@
+<footer class="site-footer">
+    <div class="footer-controls">
+        <button class="btn-toggle" onclick="toggleTheme()" id="theme-btn">AUTO</button>
+        {{ if .IsTranslated }}
+            {{ range .Translations }}
+            <a href="{{ .Permalink }}" class="btn-toggle" style="text-decoration: none;">
+                {{ if eq .Language.Lang "en" }}EN{{ else if eq .Language.Lang "zh" }}中{{ else }}{{ .Language.Lang | upper }}{{ end }}
+            </a>
+            {{ end }}
+        {{ end }}
+    </div>
+    
+    <div class="footer-info">
+        <p>&copy; {{ now.Format "2006" }} {{ .Site.Title }}. {{ T "all_rights_reserved" | default "ALL RIGHTS RESERVED." }}</p>
+    </div>
+</footer>

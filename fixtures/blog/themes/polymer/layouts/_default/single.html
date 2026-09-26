@@ -1,0 +1,82 @@
+{{ define "main" }}
+<div class="wrapper">
+    <aside>
+        <div class="toc-title">TABLE OF CONTENTS</div>
+        <nav id="TableOfContents">
+            {{ .TableOfContents }}
+        </nav>
+    </aside>
+
+    <main class="article-main">
+        <article>
+            <div class="article-hero">
+                <div class="blob-title"></div>
+                <h1>{{ .Title }}</h1>
+                <div class="meta-bar">
+                    <span>{{ .Date.Format "Jan 2, 2006" }}</span>
+                    <span>//</span>
+                    <span>{{ if .Params.categories }}{{ index .Params.categories 0 | upper }}{{ else }}POST{{ end }}</span>
+                    <span>//</span>
+                    <span style="text-transform: none; display: inline-flex; align-items: center;">{{ T "by" | default "BY" }}&nbsp;
+                        {{ if .Params.author }}
+                            {{ $author := index $.Site.Data.authors .Params.author }}
+                            {{ $name := .Params.author }}
+                            {{ $avatar := "" }}
+                            {{ if $author }}
+                                {{ $name = $author.nickname | default $name }}
+                                {{ $avatar = $author.avatar }}
+                            {{ end }}
+                            {{ if not $avatar }}
+                                {{ $avatar = printf "https://ui-avatars.com/api/?name=%s&background=random" $name }}
+                            {{ end }}
+                            <img src="{{ $avatar }}" alt="{{ $name }}" style="width: 1.2em; height: 1.2em; border-radius: 50%; margin-right: 5px; vertical-align: text-bottom;">
+                            {{ $name }}
+                        {{ else }}
+                            {{ .Site.Title }}
+                        {{ end }}
+                    </span>
+                    <span>//</span>
+                    <span>{{ .WordCount }}{{ if eq .Lang "zh" }}字{{ else }} WORDS{{ end }}</span>
+                </div>
+                {{ if .Params.tags }}
+                <div class="tags-bar" style="margin-top: 1rem; font-family: 'Space Mono'; font-size: 0.9rem;">
+                    {{ range .Params.tags }}
+                    <a href="{{ "tags/" | relLangURL }}{{ . | urlize }}" style="text-decoration: none; color: inherit; margin-right: 10px; border: 2px solid var(--ink); padding: 2px 6px; box-shadow: 2px 2px 0 var(--ink); display: inline-block; transition: 0.2s;">#{{ . | upper }}</a>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+
+            <div class="content">
+                {{ .Content }}
+            </div>
+
+            {{ partial "comments.html" . }}
+        </article>
+
+        <div class="article-nav" style="margin-top: 6rem; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            {{ with .PrevInSection }}
+            <a href="{{ .Permalink }}" class="next-article" style="margin-top: 0; text-align: left;">
+                <span style="font-family: 'Space Mono'; text-transform: uppercase; font-size: 0.9rem;">{{ T "read_prev" | default "PREVIOUS" }}</span>
+                <h2 style="font-size: 1.8rem; margin-top: 10px;">{{ .Title }}</h2>
+            </a>
+            {{ else }}
+            <div></div> <!-- Spacer -->
+            {{ end }}
+
+            {{ with .NextInSection }}
+            <a href="{{ .Permalink }}" class="next-article" style="margin-top: 0; text-align: right;">
+                <span style="font-family: 'Space Mono'; text-transform: uppercase; font-size: 0.9rem;">{{ T "read_next" | default "NEXT" }}</span>
+                <h2 style="font-size: 1.8rem; margin-top: 10px;">{{ .Title }}</h2>
+            </a>
+            {{ end }}
+        </div>
+    </main>
+</div>
+{{ end }}
+
+{{ define "scripts" }}
+{{/* TOC scroll-spy lives ONCE in assets/js/main.js (--- 6. TOC SPY ---).
+     It used to be duplicated here as an inline scroll listener, and the two
+     copies fought over the .active class — a maintenance trap. */}}
+{{ end }}

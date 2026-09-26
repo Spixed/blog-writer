@@ -1,0 +1,21 @@
+node_modules/
+dist/
+build/
+*.log
+.env
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo
+.vite/
+.runtime/
+.shots/
+.playwright-cli/
+.playwright-cli-cache/
+.workbuddy/
+
+# fixture hugo build output
+fixtures/blog/public/
+fixtures/blog/resources/
+fixtures/blog/.hugo_build.lock
+fixtures/blog/nohup.out

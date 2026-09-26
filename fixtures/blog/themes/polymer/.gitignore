@@ -1,0 +1,37 @@
+# Hugo output
+public/
+backup/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Tools
+tools/
+scripts/
+githooks/
+
+# Temporary files
+*.tmp
+*.log
+*.pyc
+.venv/
+
+# Node.js dependencies
+node_modules/
+
+# AI Agent files
+.augment/
+.roo/
+
+# Obsidian configuration
+content/.obsidian/
+# Now I wanna use GitHub to make a copy of my Ob configs
+
+# Ob plugin indexing temp files
+content/.smtcmp_json_db
+content/.smtcmp_vector_db.tar.gz

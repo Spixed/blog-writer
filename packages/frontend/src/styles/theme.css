@@ -1,0 +1,655 @@
+/**
+ * Theme styles extracted from themes/polymer/assets/css/main.css.
+ *
+ * Everything is scoped under `.theme-root` so it only applies to the preview
+ * pane and WYSIWYG content, never to the app chrome. Set `data-theme="light"`
+ * or `data-theme="dark"` on the `.theme-root` element.
+ */
+
+/* Exactly the fonts the theme's baseof.html loads (mirror hosts included), so
+   weights and CJK fallbacks match the live blog rather than a close-ish
+   Google Fonts subset. Huiwen Mincho is what Chinese headings actually use,
+   and Maple Mono CN is the code face. */
+@import url('https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+XiaoWei&family=Space+Grotesk:wght@300;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fontsapi.zeoseven.com/442/main/result.css');
+@import url('https://fontsapi.zeoseven.com/256/main/result.css');
+
+/* The palette is shared by the content surface itself and the scroll containers
+   around it: the blog's page is a full-bleed --bg surface, so the area outside
+   the 800px column must be the same colour, not the app chrome's white. */
+.theme-root,
+.wysiwyg-scroll,
+.preview-scroll {
+  /* Light theme defaults */
+  --bg: #fdf6e3;
+  --surface: #ffffff;
+  --ink: #121212;
+  --border-color: #121212;
+  --shadow-color: #121212;
+  --blob-opacity: 0.15;
+
+  /* Cartoon palette (constant) */
+  --red: #ff3d00;
+  --blue: #2979ff;
+  --yellow: #ffd600;
+  --green: #00e676;
+  --grey: #e0e0e0;
+  --dark-grey: #333333;
+  --code-bg: rgba(18, 18, 22, 0.92);
+  --code-fg: #d4d4d4;
+  --code-lang-bg: #ffd600;
+  --code-lang-fg: #121212;
+  --code-gutter-bg: #252529;
+
+  --border: 4px solid var(--border-color);
+  --shadow: 8px 8px 0px var(--shadow-color);
+  --shadow-large: 10px 10px 0px var(--shadow-color);
+
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+.theme-root {
+  font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  font-size: 16px;
+}
+
+.theme-root[data-theme='dark'],
+.wysiwyg-scroll[data-theme='dark'],
+.preview-scroll[data-theme='dark'] {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --ink: #fdf6e3;
+  --border-color: #fdf6e3;
+  --shadow-color: #000000;
+  --blob-opacity: 0.2;
+  --grey: #2d2d2d;
+  --dark-grey: #a8a8a8;
+  --code-bg: rgba(45, 45, 52, 0.55);
+  --code-gutter-bg: #212125;
+}
+
+.theme-root h1,
+.theme-root h2,
+.theme-root h3,
+.theme-root h4,
+.theme-root h5,
+.theme-root h6 {
+  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+  font-weight: bold;
+}
+
+/* ---- article hero ---------------------------------------------------- */
+.theme-root .article-hero {
+  margin-bottom: 4rem;
+  position: relative;
+}
+
+.theme-root article h1 {
+  font-size: 4.5rem;
+  line-height: 1;
+  letter-spacing: -1px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.theme-root .meta-bar {
+  display: flex;
+  gap: 20px;
+  font-family: 'Space Mono';
+  font-size: 0.9rem;
+  border-top: 3px solid var(--ink);
+  border-bottom: 3px solid var(--ink);
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+/* ---- content typography --------------------------------------------- */
+.theme-root .content {
+  font-size: 18px;
+  line-height: 1.7;
+  max-width: 800px;
+  overflow-wrap: break-word;
+}
+.theme-root .content p {
+  margin-bottom: 1.5rem;
+}
+
+/* The theme styles in-content `#` headings through `article h1` (there is no
+   `.content h1` rule), so they render at the hero size. Match it. */
+.theme-root .content h1 {
+  font-size: 4.5rem;
+  line-height: 1;
+  letter-spacing: -1px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+.theme-root .content h2 {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  font-size: 2.2rem;
+  border-bottom: 4px solid var(--ink);
+  padding-bottom: 0.5rem;
+}
+.theme-root .content h3 {
+  font-size: 2rem;
+  margin: 3rem 0 1.5rem 0;
+  border-left: 8px solid var(--yellow);
+  padding-left: 1rem;
+}
+.theme-root .content h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.theme-root .content blockquote {
+  border-left: 6px solid var(--yellow);
+  background: var(--yellow);
+  color: #121212;
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-style: italic;
+  font-family: 'Space Mono', 'Noto Sans SC', serif;
+  word-break: break-word;
+  box-shadow: var(--shadow);
+}
+.theme-root .content blockquote p {
+  margin-bottom: 0;
+}
+.theme-root .content blockquote p:first-of-type::first-letter,
+.theme-root .content p:first-of-type::first-letter {
+  font-size: var(--drop-cap-size, 4rem);
+  float: left;
+  margin-right: 0.6rem;
+  line-height: 0.9;
+  font-weight: bold;
+  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+}
+/* Fix drop cap inside links. The theme writes `::first-letter a`, which is
+   invalid CSS (a pseudo-element cannot be followed by a selector); browsers
+   ignore it and so does this valid equivalent. */
+.theme-root .content > p:first-of-type > a:first-child,
+.theme-root .content > p:first-of-type > a:first-child::first-letter {
+  color: inherit;
+  text-decoration: none;
+}
+.theme-root .content > p:first-of-type::first-letter {
+  position: relative;
+  z-index: 0;
+}
+
+/* ---- tables ---------------------------------------------------------- */
+.theme-root .content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-family: 'Space Mono', 'Noto Sans SC', monospace;
+  font-size: 0.9rem;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.theme-root .content th,
+.theme-root .content td {
+  padding: 0.8rem;
+  text-align: left;
+}
+.theme-root .content td {
+  border: 2px solid var(--ink);
+}
+.theme-root .content th {
+  border: 2px solid var(--bg);
+  background: var(--ink);
+  color: var(--bg);
+}
+.theme-root .content tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ---- inline code ----------------------------------------------------- */
+.theme-root .content code {
+  font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+  background: var(--surface);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--border-color);
+  padding: 0.2rem 0.5rem;
+  margin: 0 0.2rem;
+  border-radius: 0;
+  font-size: 0.9em;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+.theme-root .content code:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--border-color);
+}
+.theme-root .content h1 code,
+.theme-root .content h2 code,
+.theme-root .content h3 code,
+.theme-root .content h4 code {
+  font-size: 0.75em;
+  vertical-align: middle;
+  padding: 0.1rem 0.3rem;
+  border-width: 2px;
+  box-shadow: 1px 1px 0 var(--border-color);
+}
+.theme-root .content h1 code {
+  top: -5.5pt;
+}
+.theme-root .content h2 code {
+  top: -3pt;
+}
+.theme-root .content h3 code {
+  top: -1pt;
+}
+
+/* ---- code blocks (mirrors render-codeblock.html + Monokai Chroma) ----- */
+.theme-root .code-container {
+  position: relative;
+  margin: 2rem 0;
+}
+
+.theme-root .code-lang {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--code-lang-bg);
+  color: var(--code-lang-fg);
+  padding: 2px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
+  z-index: 5;
+  pointer-events: none;
+  border-bottom-left-radius: 4px;
+}
+.theme-root .content pre {
+  /* Chroma monokai background — on the real blog Hugo's inline style wins
+     over this rule, so the editor must mirror the inline value (#272822),
+     not the theme sheet's own colour. */
+  background: var(--code-bg) !important;
+  color: var(--code-fg);
+  padding: 1.5rem;
+  overflow-x: auto;
+  border: none;
+  margin: 2rem 0;
+  position: relative;
+  font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+  font-size: 13pt;
+  line-height: 1.5;
+  white-space: pre;
+  color-scheme: dark;
+}
+.theme-root .content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  cursor: text;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  font-size: inherit;
+  font-weight: normal;
+}
+.theme-root .content pre code:hover {
+  background: transparent;
+  color: inherit;
+  transform: none;
+  box-shadow: none;
+}
+.theme-root .highlight {
+  margin: 2rem 0;
+}
+.theme-root .code-container > .highlight,
+.theme-root .code-container > .highlight > pre { margin: 0; }
+.theme-root .code-toolbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  height: 1.5rem;
+  display: flex;
+  align-items: stretch;
+}
+.theme-root .code-toolbar .code-lang {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-size: .72rem;
+  border-radius: 0;
+}
+.theme-root .copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 4px 8px;
+  font-family: 'Space Mono';
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0;
+  transition: 0.2s;
+  z-index: 10;
+}
+.theme-root .code-container .copy-btn {
+  top: 30px;
+  right: 0;
+  border-right: none;
+}
+.theme-root .content pre:hover .copy-btn {
+  opacity: 1;
+}
+.theme-root .copy-btn:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* ---- lists / hr / images -------------------------------------------- */
+.theme-root .content ul,
+.theme-root .content ol {
+  padding-left: 2rem;
+  margin-bottom: 2rem;
+}
+.theme-root .content li {
+  margin-bottom: 0.5rem;
+}
+.theme-root .content ul.task-list {
+  list-style: none;
+  padding-left: 0;
+}
+.theme-root .content ul li:has(input[type='checkbox']) {
+  list-style: none;
+}
+.theme-root .content ul li input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  margin-right: 0.5em;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+}
+.theme-root .content ul li input[type='checkbox']:checked {
+  background: var(--green);
+  border-color: var(--ink);
+}
+.theme-root .content ul li input[type='checkbox']:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #121212;
+}
+.theme-root .content hr {
+  border: 0;
+  border-top: var(--border);
+  margin: 3rem 0;
+}
+.theme-root .content img {
+  max-width: 100%;
+  border: var(--border);
+  box-shadow: var(--shadow);
+  margin: 2rem 0;
+}
+.theme-root .content a {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: bold;
+  border-bottom: 2px solid var(--ink);
+  transition: 0.2s;
+  position: relative;
+}
+.theme-root .content a:hover {
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 4px 4px 0 var(--border-color);
+}
+
+/* ---- figures (render-image.html) ------------------------------------ */
+.theme-root figure.image-figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+.theme-root figure.image-figure img {
+  margin: 0;
+}
+.theme-root figure.image-figure figcaption {
+  font-family: 'Space Mono', 'Noto Sans SC', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  opacity: 0.75;
+}
+
+/* ---- ruby ------------------------------------------------------------ */
+.theme-root ruby {
+  font-size: inherit;
+  ruby-align: space-around;
+}
+.theme-root rt {
+  font-size: 0.6em;
+  color: var(--dark-grey);
+  line-height: 1.15;
+}
+
+/* ---- hl shortcode ---------------------------------------------------- */
+.theme-root .hl-shortcode {
+  font-weight: bold;
+}
+.theme-root .hl-shortcode-block {
+  font-weight: bold;
+  border-left: 4px solid currentColor;
+  padding-left: 1rem;
+  margin: 1rem 0;
+}
+
+/* ---- qmoji ----------------------------------------------------------- */
+.theme-root .qmoji {
+  display: inline-block;
+  vertical-align: text-bottom;
+  height: 1.2em;
+  width: auto;
+  border: none !important;
+  margin: 0 1px !important;
+  box-shadow: none !important;
+  cursor: default !important;
+}
+.theme-root .super-qmoji {
+  display: inline-block;
+  vertical-align: text-bottom;
+  width: auto;
+  height: 1.2em;
+  margin: 0 1px;
+}
+.theme-root .qmoji-container-block {
+  display: block;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+.theme-root .qmoji-block {
+  height: 4em;
+  width: auto;
+}
+.theme-root .super-qmoji.qmoji-block {
+  width: auto;
+  height: 4em;
+}
+.theme-root .qq-emoji-error {
+  color: var(--dark-grey);
+  font-size: small;
+  font-style: italic;
+}
+
+/* ---- footnotes ------------------------------------------------------- */
+.theme-root .footnotes {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: var(--border);
+  font-size: 0.9rem;
+}
+.theme-root .footnotes ol {
+  padding-left: 1.5rem;
+}
+.theme-root .footnotes li {
+  margin-bottom: 0.5rem;
+}
+.theme-root .footnotes p::first-letter {
+  float: none !important;
+  font-size: inherit !important;
+  font-weight: normal !important;
+  font-family: inherit !important;
+  margin: 0 !important;
+  line-height: inherit !important;
+}
+.theme-root sup.footnote-ref a {
+  text-decoration: none;
+  border-bottom: none;
+  font-family: 'Space Mono';
+  margin: 0 2px;
+}
+
+/* ---- editor-only: <!--more--> summary divider ------------------------ */
+.theme-root .more-marker {
+  position: relative;
+  margin: 2rem 0;
+  border-top: 3px dashed var(--dark-grey);
+  padding-top: 0.4rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--dark-grey);
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* ---- shortcode placeholder (unknown shortcodes) ---------------------- */
+.theme-root .shortcode-unknown {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8em;
+  padding: 0.1rem 0.4rem;
+  border: 2px dashed var(--dark-grey);
+  border-radius: 3px;
+  color: var(--dark-grey);
+  background: var(--grey);
+  vertical-align: middle;
+}
+
+/* ---- MathJax / KaTeX resets ------------------------------------------ */
+.theme-root mjx-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* WYSIWYG-only corrections. The article stylesheet intentionally targets
+   every `.content p:first-of-type`; ProseMirror adds paragraph wrappers inside
+   tight lists, so those wrappers need an explicit reset. */
+.theme-root .content.wysiwyg-prose code,
+.theme-root .content.wysiwyg-prose code:hover {
+  cursor: text;
+  position: static;
+  transform: none;
+  transition: none;
+}
+/* `:first-of-type` matches the first paragraph of every `li`/`td`/`th` as
+   well, both in the editor (`.wysiwyg-prose`) and in the split-mode preview
+   (`.preview-prose`), so the reset is spelled out for each container
+   (specificity must stay above the article rule's (0,3,2)). */
+.theme-root .content.wysiwyg-prose > p::first-letter,
+.theme-root .content.wysiwyg-prose li p::first-letter,
+.theme-root .content.wysiwyg-prose td p::first-letter,
+.theme-root .content.wysiwyg-prose th p::first-letter,
+.theme-root .content.preview-prose li p::first-letter,
+.theme-root .content.preview-prose td p::first-letter,
+.theme-root .content.preview-prose th p::first-letter {
+  float: none;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+.theme-root .content.wysiwyg-prose td > p,
+.theme-root .content.wysiwyg-prose th > p {
+  margin: 0;
+}
+.theme-root .content.wysiwyg-prose > p:first-of-type::first-letter,
+.theme-root .content.wysiwyg-prose > blockquote p:first-of-type::first-letter {
+  float: left;
+  margin-right: 0.6rem;
+  line-height: 0.9;
+  font-weight: bold;
+  font-size: var(--drop-cap-size, 4rem);
+  font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+}
+
+/* Polymer's non-scrolling toolbar and thin, dark code scrollbar. */
+.theme-root .code-container > pre,
+.theme-root .code-container > .highlight > pre {
+  margin: 0;
+  padding: 1.5rem 1.5rem 1.5rem 3.6em;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--code-fg);
+  font: 13pt/1.5 'Maple Mono NF CN', 'Space Mono', monospace;
+  white-space: pre;
+  scrollbar-width: thin;
+  scrollbar-color: #4a4a52 transparent;
+}
+.theme-root .code-container .code-toolbar { height: 1.5rem; }
+.theme-root .code-container .code-toolbar .code-lang {
+  border-radius: 0;
+  background: var(--code-lang-bg);
+  color: var(--code-lang-fg);
+  padding: 0 8px;
+}
+.theme-root .code-container pre::before { content: none; }
+.theme-root .editor-code-container .editor-code-gutter {
+  position: absolute;
+  left: 0;
+  top: 1.5rem;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  font: 13pt/1.5 'Maple Mono NF CN', 'Space Mono', monospace;
+  color: #8a8a93;
+  background: var(--code-gutter-bg);
+  width: 3.6em;
+}
+.editor-code-gutter span { display: block; height: 1.5em; padding-right: 1.1em; text-align: right; }
+.editor-code-gutter span::before { content: attr(data-line); }
+.theme-root .code-container > .highlight > pre { padding-left: 0; counter-reset: code-line; }
+.theme-root .code-container .highlight .line { counter-increment: code-line; }
+.theme-root .code-container .highlight .line::before {
+  content: counter(code-line);
+  display: inline-block;
+  position: sticky;
+  left: 0;
+  width: 3.6em;
+  padding-right: 1.1em;
+  text-align: right;
+  color: #8a8a93;
+  background: var(--code-gutter-bg);
+  user-select: none;
+}

@@ -1,0 +1,50 @@
+baseURL = "https://example.org/"
+title = "Blog Writer Fixture"
+theme = "polymer"
+defaultContentLanguage = "zh"
+hasCJKLanguage = true
+enableEmoji = true
+
+[params]
+  description = "A small self-contained Hugo site used by Blog Writer's tests, screenshots and CI"
+  mathEngine = "mathjax"
+  favicon = "/images/sample.png"
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
+[languages]
+  [languages.zh]
+    languageName = '简体中文'
+    contentDir = 'content/zh'
+    weight = 1
+    languageCode = "zh-CN"
+
+  [languages.en]
+    languageName = 'English'
+    contentDir = 'content/en'
+    weight = 2
+    languageCode = "en-US"
+
+[markup]
+  [markup.highlight]
+    # Class mode so palettes can be swapped freely (see the real blog's
+    # hugo.toml for the full rationale).
+    noClasses = false
+    codeFences = true
+    guessSyntax = false
+    lineNos = false
+    lineNumbersInTable = false
+    tabWidth = 4
+    noHl = false
+
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['$$', '$$'], ['\[', '\]']]
+          inline = [['$', '$'], ['\(', '\)']]

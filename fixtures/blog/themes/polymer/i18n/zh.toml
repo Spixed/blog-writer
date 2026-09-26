@@ -1,0 +1,41 @@
+[all_stories]
+other = "全部文章"
+
+[archives]
+other = "归档"
+
+[links]
+other = "友链"
+
+[on_this_page]
+other = "目录"
+
+[read_next]
+other = "下一篇"
+
+[read_prev]
+other = "上一篇"
+
+[by]
+other = "作者"
+
+[math_error]
+other = "公式渲染错误"
+
+[categories]
+other = "分类"
+
+[tags]
+other = "标签"
+
+[about]
+other = "关于"
+
+[authors]
+other = "作者"
+
+[category]
+other = "分类"
+
+[tag]
+other = "标签"

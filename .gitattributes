@@ -1,0 +1,13 @@
+# Normalize line endings: store LF in the repo, check out LF everywhere.
+# This project round-trips post files byte-exactly, so line endings must
+# never be rewritten by git.
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

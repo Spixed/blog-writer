@@ -1,0 +1,81 @@
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [
+        ["$", "$"],
+        ["\\(", "\\)"],
+      ],
+      displayMath: [
+        ["$$", "$$"],
+        ["\\[", "\\]"],
+      ],
+      processEscapes: true,
+      processEnvironments: true,
+      tags: "ams",
+    },
+    options: {
+      skipHtmlTags: ["script", "noscript", "style", "textarea", "pre"],
+      enableMenu: false,
+      menuOptions: {
+        settings: {
+          enrich: false,
+          collapsible: false,
+          speech: false,
+          braille: false,
+          assistiveMml: false,
+        },
+      },
+    },
+    chtml: {
+      scale: 1,
+      minScale: 0.5,
+      matchFontHeight: true,
+      mtextInheritFont: true,
+      merrorInheritFont: true,
+      mathmlSpacing: false,
+      skipAttributes: {},
+      exFactor: 0.5,
+      displayAlign: "center",
+      displayIndent: "0",
+    },
+    startup: {
+      ready: () => {
+        MathJax.startup.defaultReady();
+
+        MathJax.startup.promise.then(() => {
+          // Custom Menu: Only show "Copy to TeX"
+          if (
+            MathJax.startup.document &&
+            MathJax.startup.document.menu &&
+            MathJax.startup.document.menu.menu
+          ) {
+            const menu = MathJax.startup.document.menu.menu;
+            const copyTeXItem = {
+              type: "command",
+              id: "CopyTeX",
+              content: "Copy to TeX",
+              action: function (menu, item) {
+                const mathItem = MathJax.startup.document.menu.mathItem;
+                const tex = mathItem.math; // Get original TeX source
+                navigator.clipboard
+                  .writeText(tex)
+                  .then(function () {
+                    // Optional: Provide visual feedback?
+                  })
+                  .catch(function (err) {
+                    console.error("Failed to copy TeX: ", err);
+                  });
+              },
+            };
+            // Clear existing items and add custom one
+            menu.items = [copyTeXItem];
+          }
+        });
+      },
+    },
+  };
+</script>
+<script
+  id="MathJax-script"
+  src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
+></script>

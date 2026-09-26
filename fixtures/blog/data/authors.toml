@@ -1,0 +1,16 @@
+[spixed]
+name = "Spixed"
+nickname = "Spixed"
+avatar = "/site/spixed.png"
+bio = { en = "Henceforth, all returns to naught; what's past is but a prologue.", zh = "从现在起，一切归零；凡是过往，皆为序章。" }
+github = "https://github.com/Spixed"
+email = "Space369X@163.com"
+website = "https://spixed.is-a.dev/"
+weight = 3
+
+[hetx]
+name = "δ-me13"
+nickname = "δ-me13"
+avatar = "/site/hetx.jpg"
+bio = { en = "Only pain doesn't lie.", zh = "唯有痛苦不会说谎。" }
+weight = 2

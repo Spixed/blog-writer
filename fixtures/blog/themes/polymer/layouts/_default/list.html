@@ -1,0 +1,35 @@
+{{ define "main" }}
+<main class="archive-main archive-main--wide">
+    <h1 class="archive-title">
+        {{ if .Data.Singular }}
+            {{ T .Data.Singular | default (.Data.Singular) }} // {{ .Title }}
+        {{ else }}
+            {{ .Title }}
+        {{ end }}
+    </h1>
+
+    <div class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding-top: 0; border-top: none; max-width: 100%;">
+        {{ $pages := .Pages }}
+        {{ if .Data.Singular }}
+            {{ $pages = .RegularPages }}
+        {{ end }}
+        {{ range $index, $post := $pages }}
+            {{ $style_classes := slice "style-blue" "style-yellow" "style-green" "style-grey" "style-black" }}
+            {{ $style := index $style_classes (mod $index (len $style_classes)) }}
+            
+            <div class="card-wrapper span-4 {{ $style }}" style="min-height: 200px;">
+                <a href="{{ $post.Permalink }}" class="card-inner">
+                    <div class="ink-blob" style="width: 100px; height: 100px;"></div>
+                    <div class="card-content">
+                        <span class="meta">{{ if $post.Params.categories }}{{ index $post.Params.categories 0 | upper }}{{ else }}POST{{ end }}</span>
+                        <h2 style="font-size: 1.5rem;">{{ $post.Title }}</h2>
+                        <p style="margin-top: auto; font-size: 0.9rem;">{{ $post.Date.Format "Jan 2, 2006" }}</p>
+                    </div>
+                </a>
+            </div>
+        {{ else }}
+            <p style="font-family: 'Space Mono'; opacity: 0.6; grid-column: span 3;">{{ T "no_posts" | default "No posts found." }}</p>
+        {{ end }}
+    </div>
+</main>
+{{ end }}

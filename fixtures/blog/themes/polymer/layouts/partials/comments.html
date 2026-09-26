@@ -1,0 +1,58 @@
+{{ if and .Site.Params.waline.enable .Site.Params.waline.serverURL }}
+<div id="waline" style="margin-top: 3rem;"></div>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
+<script type="module">
+    import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
+    
+    const walineConfig = {
+        el: '#waline',
+        serverURL: '{{ .Site.Params.waline.serverURL }}',
+        dark: 'html[data-theme="dark"]',
+        emoji: [
+            '//unpkg.com/@waline/emojis@1.2.0/qq',
+            '//unpkg.com/@waline/emojis@1.2.0/weibo',
+            '//unpkg.com/@waline/emojis@1.2.0/soul-emoji'
+        ],
+    };
+
+    {{ if or .Params.math .Site.Params.math }}
+        {{ if eq .Site.Params.mathEngine "katex" }}
+            walineConfig.texRenderer = (blockMode, tex) => {
+                if (window.katex) {
+                    return window.katex.renderToString(tex, {
+                        displayMode: blockMode,
+                        throwOnError: false,
+                    });
+                }
+                return tex;
+            };
+        {{ else }}
+            walineConfig.texRenderer = (blockMode, tex) => {
+                if (window.MathJax) {
+                     try {
+                        // Attempt to use MathJax to render
+                        const adaptor = window.MathJax.startup.adaptor;
+                        // Use tex2chtml since the theme uses CHTML output
+                        if (window.MathJax.tex2chtml) {
+                             return adaptor.outerHTML(
+                                window.MathJax.tex2chtml(tex, { display: blockMode })
+                            );
+                        }
+                        // Fallback to tex2svg if available
+                        if (window.MathJax.tex2svg) {
+                            return adaptor.outerHTML(
+                                window.MathJax.tex2svg(tex, { display: blockMode })
+                            );
+                        }
+                     } catch (e) {
+                         console.error("Waline MathJax render error:", e);
+                     }
+                }
+                return tex;
+            };
+        {{ end }}
+    {{ end }}
+
+    init(walineConfig);
+</script>
+{{ end }}

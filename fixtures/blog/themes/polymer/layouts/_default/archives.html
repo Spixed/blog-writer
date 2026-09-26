@@ -1,0 +1,27 @@
+{{ define "main" }}
+<main class="archive-main">
+    <h1 class="archive-title">
+        {{ T "archives" | default "ARCHIVES" }}
+    </h1>
+
+    <div class="timeline">
+        {{ range ((where .Site.RegularPages "Type" "post").GroupByDate "2006") }}
+        <div class="archive-year-group">
+            <h2 class="archive-year">
+                {{ .Key }}
+            </h2>
+            <div class="archive-year-list">
+                {{ range .Pages }}
+                <div class="archive-item">
+                    <span class="archive-date">{{ .Date.Format "01.02" }}</span>
+                    <a href="{{ .Permalink }}" class="archive-link">
+                        {{ .Title }}
+                    </a>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</main>
+{{ end }}

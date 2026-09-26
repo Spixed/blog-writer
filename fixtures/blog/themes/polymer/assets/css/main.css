@@ -1,0 +1,1319 @@
+:root {
+    /* Light Theme Defaults */
+    --bg: #fdf6e3;
+    --surface: #ffffff;
+    --ink: #121212;
+    --border-color: #121212;
+    --shadow-color: #121212;
+    --blob-opacity: 0.15;
+    
+    /* Cartoon Palette (Constant) */
+    --red: #FF3D00;
+    --blue: #2979FF;
+    --yellow: #FFD600;
+    --green: #00E676;
+    --grey: #E0E0E0;
+    --dark-grey: #333333;
+    
+    --border: 4px solid var(--border-color);
+    --shadow: 8px 8px 0px var(--shadow-color);
+    --shadow-large: 10px 10px 0px var(--shadow-color);
+
+    /* Grain overlay. The noise is dark-ish, so it needs a higher alpha to
+       register on the light theme's white/cream surfaces than on dark ones. */
+    --grain-opacity: 0.1;
+
+    /* --- Code block surface ---------------------------------------------
+       A dark translucent VEIL rather than an opaque slab: the page
+       background and its grain texture stay visible through it, so the
+       block reads as a layer of the page instead of a sticker on top.
+       The alpha is tuned PER THEME — the veil has to be calibrated against
+       a different surface colour in each (the veil sits on .article-main's
+       --surface, not on --bg). Resulting surfaces:
+         light -> ~#252529 over the white article sheet
+         dark  -> ~#26262a over the #1e1e1e article sheet */
+    --code-bg: rgba(18, 18, 22, 0.92);
+    --code-fg: #d4d4d4;          /* plain text / punctuation                */
+    --code-lang-bg: #ffd600;     /* language tag (theme yellow accent)      */
+    --code-lang-fg: #121212;
+    --code-ui-bg: rgba(255, 255, 255, 0.08);  /* copy button idle           */
+    --code-ui-fg: #e6e1d6;
+    --code-ui-accent: #ffd600;   /* copy button hover                       */
+    --code-lineno: #8a8a93;      /* line numbers                            */
+
+    /* Line-number gutter. Width fits 3-digit numbers; the background is the
+       OPAQUE equivalent of the veil above (veil composited over --surface),
+       so the pinned gutter masks sliding code while staying invisible as a
+       seam. Recompute it if --code-bg or --surface changes. */
+    --code-gutter: 3.2em;
+    --code-gutter-bg: #252529;
+}
+
+[data-theme="dark"] {
+    --code-bg: rgba(45, 45, 52, 0.55);
+    --code-gutter-bg: #26262a;
+    /* Muted/secondary text. Flipped here so figcaptions, <rt> ruby and
+       emoji error notes stay readable on the dark article sheet. */
+    --dark-grey: #a8a8a8;
+
+    /* The noise is dark-ish and sits on a dark sheet, so it needs less alpha
+       here than in light mode to read as texture rather than as dirt. */
+    --grain-opacity: 0.04;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 20px; /* Account for sticky header */
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --ink: #fdf6e3; /* Off-white text */
+    --border-color: #fdf6e3;
+    /* The hard offset shadow is the movement's second signature. Pure black
+       on #121212 is 1.12:1 — invisible — so dark mode mirrors light mode:
+       the shadow takes the border colour (cream), exactly like light mode
+       takes ink-black for both. */
+    --shadow-color: #fdf6e3;
+    --blob-opacity: 0.2;
+
+    /* In dark mode, Grey card becomes dark grey */
+    --grey: #2d2d2d;
+}
+
+/* Keyboard focus: the browser's default ring is near-invisible against the
+   cream/ink palette, so draw a hard blue outline that survives every
+   surface (cream, yellow aside, dark sheet). */
+:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
+
+/* Motion opt-out: this theme is animated by default (infinite blob morph,
+   carousel autoplay, card tilt), which is exactly what vestibular-sensitive
+   users need to be able to switch off. Kill every animation and transition;
+   main.js additionally stops the hero autoplay, the tilt/parallax effects
+   and Lottie autoplay when this query matches. */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* 强制加粗标题，增加视觉分量 */
+h1, h2, h3, h4, h5, h6, .brand-font, .archive-year, .archive-title {
+    font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+    font-weight: bold; 
+}
+
+/* Ensure Space Grotesk is used for Greek characters in author names */
+.profile-info h1 {
+    font-family: 'Space Grotesk', sans-serif !important;
+}
+
+/* 噪点层 */
+.grain {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 9999; opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Header */
+header {
+    border-bottom: var(--border); padding: 1.5rem 2rem;
+    background: var(--surface); display: flex; justify-content: space-between;
+    align-items: center; position: sticky; top: 0; z-index: 100;
+    transition: background 0.3s;
+}
+
+.logo { font-size: 2rem; font-weight: 900; line-height: 0.9; text-decoration: none; color: inherit; }
+
+/* Desktop Nav */
+.desktop-nav { display: flex; gap: 20px; }
+.nav-link {
+    font-family: 'Space Mono'; font-weight: 700; text-decoration: none; color: var(--ink);
+    font-size: 1.1rem; border-bottom: 2px solid transparent;
+    transition: 0.2s;
+}
+.nav-link:hover { border-bottom: 2px solid var(--ink); }
+
+/* Mobile Menu Button */
+.menu-btn {
+    display: none; flex-direction: column; gap: 6px; cursor: pointer;
+    background: none; border: none; padding: 5px;
+}
+.menu-btn span {
+    display: block; width: 30px; height: 3px; background: var(--ink);
+    transition: 0.3s;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--surface); z-index: 200;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    gap: 2rem; transform: translateY(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mobile-menu.open { transform: translateY(0); }
+
+.mobile-menu nav { display: flex; flex-direction: column; gap: 1.5rem; text-align: center; }
+.mobile-menu nav a {
+    font-size: 2rem; font-weight: 900; text-decoration: none; color: var(--ink);
+    font-family: 'Space Grotesk';
+}
+.mobile-controls { display: flex; gap: 15px; margin-top: 2rem; }
+
+.close-btn {
+    position: absolute; top: 20px; right: 20px;
+    font-size: 3rem; background: none; border: none; color: var(--ink); cursor: pointer;
+}
+
+.btn-toggle {
+    font-family: 'Space Mono'; font-weight: 700; cursor: pointer;
+    border: 2px solid var(--ink); padding: 8px 16px;
+    background: var(--surface); color: var(--ink);
+    box-shadow: 4px 4px 0 var(--border-color);
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+.btn-toggle:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--border-color); }
+.btn-toggle:active { transform: translate(0, 0); box-shadow: 2px 2px 0 var(--border-color); }
+
+/* Footer */
+.site-footer {
+    padding: 4rem 2rem; border-top: var(--border);
+    text-align: center;
+    font-family: 'Space Mono';
+}
+.footer-controls {
+    position: fixed; bottom: 30px; left: 30px; z-index: 90;
+    display: flex; gap: 10px; flex-direction: row;
+}
+/* The floating toggles hover ABOVE page content (and cover card text when
+   scrolling), so at rest they recede to half transparency and only solidify
+   on hover / keyboard focus. */
+.footer-controls .btn-toggle { opacity: 0.5; }
+.footer-controls .btn-toggle:hover,
+.footer-controls .btn-toggle:focus-visible { opacity: 1; }
+
+@media (max-width: 900px) {
+    .mobile-menu { display: flex; }
+    .footer-controls { 
+        bottom: 20px; left: 20px; 
+    }
+}
+
+.footer-info { font-weight: 700; margin-top: 0; }
+
+/* Back Button (Article Page) */
+.back-btn {
+    text-decoration: none; color: var(--ink); font-family: 'Space Mono';
+    font-weight: 700; display: flex; align-items: center; gap: 10px;
+    font-size: 1.1rem;
+}
+.back-btn:hover { text-decoration: underline; }
+
+/* Filter Tab Bar */
+.filter-bar {
+    padding: 2rem 2rem 0 2rem; max-width: 1600px; margin: 0 auto;
+    display: flex; gap: 10px; flex-wrap: wrap;
+    position: relative; z-index: 5;
+}
+
+.filter-btn {
+    background: var(--surface); border: var(--border); border-bottom: none;
+    padding: 12px 24px; font-size: 1.2rem; color: var(--ink);
+    font-family: 'Space Mono'; 
+    font-weight: 700; cursor: pointer;
+    transform: translateY(4px); transition: 0.2s;
+    position: relative; z-index: 1;
+}
+.filter-btn:hover { transform: translateY(0); z-index: 10; }
+.filter-btn.active {
+    background: var(--yellow); color: #121212; 
+    transform: translateY(0);
+    box-shadow: 0 -4px 0 rgba(0,0,0,0.1) inset;
+    border-color: var(--border-color);
+    z-index: 10;
+}
+
+/* Author Profile */
+.author-profile-container {
+    max-width: 1600px; margin: 0 auto; padding: 0 2rem;
+    overflow: hidden; max-height: 0; opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.author-profile-container.visible {
+    max-height: 500px; opacity: 1; padding-top: 0; padding-bottom: 20px;
+}
+
+.profile-card {
+    background: var(--surface); border: var(--border);
+    padding: 2rem; display: flex; align-items: center; gap: 40px;
+    box-shadow: var(--shadow); position: relative;
+}
+
+.profile-avatar {
+    width: 120px; height: 120px; border: var(--border);
+    border-radius: 50%; flex-shrink: 0; position: relative;
+    background-size: cover; background-position: center;
+}
+
+.profile-info h1 { font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+.profile-motto { font-family: 'Space Mono', 'Noto Sans SC'; font-style: italic; opacity: 0.7; margin-bottom: 1.5rem; font-size: 1.1rem; }
+
+.profile-links { display: flex; gap: 10px; }
+.contact-btn {
+    text-decoration: none; color: var(--ink); font-weight: 700;
+    border: 2px solid var(--ink); padding: 8px 16px;
+    font-family: 'Space Mono'; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px; transition: 0.2s;
+}
+.contact-btn:hover { background: var(--ink); color: var(--bg); }
+
+/* Grid */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(220px, auto);
+    gap: 20px;
+    padding: 20px 2rem 4rem 2rem;
+    max-width: 1600px; margin: 0 auto;
+    border-top: var(--border);
+    background: var(--surface);
+    transition: background 0.3s;
+}
+
+.card-wrapper { position: relative; perspective: 1000px; z-index: 1; transition: z-index 0s 0.1s; }
+.card-wrapper:hover { z-index: 10; transition: z-index 0s 0s; }
+.card-wrapper.hidden { display: none; }
+
+.card-inner {
+    width: 100%; height: 100%;
+    background: var(--surface); border: var(--border);
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden;
+    text-decoration: none; color: var(--ink);
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+.card-inner:hover { box-shadow: var(--shadow); }
+
+.card-content {
+    padding: 1.5rem; position: relative; z-index: 2;
+    height: 100%; display: flex; flex-direction: column;
+    pointer-events: none;
+}
+
+.ink-blob {
+    position: absolute;
+    background: var(--ink);
+    z-index: 1;
+    opacity: var(--blob-opacity);
+    pointer-events: none;
+    animation: morph 20s ease-in-out infinite;
+    width: 140px;
+    height: 140px;
+    top: -20px;
+    right: -20px;
+}
+
+.style-red .ink-blob, .style-black .ink-blob, .style-blue .ink-blob {
+    background: #ffffff;
+}
+
+.meta {
+    font-family: 'Space Mono'; font-size: 0.8rem; font-weight: bold;
+    background: var(--ink); color: var(--bg); display: inline-block;
+    padding: 4px 8px; align-self: flex-start; margin-bottom: 1rem;
+}
+
+h2 { font-size: 2.2rem; line-height: 1.1; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); word-break: break-word; overflow-wrap: break-word; }
+
+/* Grid Spans */
+.span-8 { grid-column: span 8; }
+.span-6 { grid-column: span 6; }
+.span-4 { grid-column: span 4; }
+.span-3 { grid-column: span 3; }
+.row-2 { grid-row: span 2; }
+
+/* Hero Slide Logic */
+.hero-slide { display: none; height: 100%; flex-direction: column; justify-content: space-between; }
+.hero-slide.active { display: flex; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* The pager (arrows, play button, dots) is pinned to the card's bottom-right
+   corner; without this reserved band its dots sit on the last line of the
+   summary. The nav occupies ~44px (bottom 20px + height), so 4.5rem of
+   content padding clears it with room to spare. */
+#hero-card .card-content { padding-bottom: 4.5rem; }
+
+.hero-nav {
+    position: absolute; bottom: 20px; right: 20px; z-index: 10;
+    display: flex; gap: 10px; align-items: center;
+}
+
+.hero-dots {
+    display: flex; gap: 10px; margin-left: 10px;
+}
+
+.hero-control-btn {
+    background: var(--ink); color: var(--bg);
+    border: 2px solid var(--bg); /* Use bg for border to be visible on ink background? No, ink is usually black. */
+    /* Wait, hero card background changes. */
+    /* .hero-nav is on top of hero card. */
+    border: 2px solid var(--ink);
+    font-family: 'Space Mono'; font-weight: bold;
+    cursor: pointer; padding: 2px 8px;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.hero-control-btn:hover {
+    background: var(--surface); color: var(--ink); border-color: var(--surface);
+}
+
+.hero-dot {
+    width: 16px; height: 16px; border: 2px solid var(--ink); background: var(--ink);
+    cursor: pointer; transition: 0.2s;
+}
+.hero-dot.active { background: var(--surface); transform: scale(1.2); border-color: var(--surface); }
+
+/* Article Layout */
+.wrapper {
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: 300px 1fr;
+    min-height: 100vh;
+}
+
+aside {
+    border-right: var(--border); padding: 3rem 2rem;
+    background: var(--yellow); position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; color: #121212; 
+}
+
+.toc-title {
+    font-family: 'Space Mono'; text-transform: uppercase;
+    margin-bottom: 2rem; font-weight: 700; opacity: 0.6;
+}
+
+aside nav ul { list-style: none; padding: 0; }
+aside nav ul li { margin-bottom: 0.5rem; }
+aside nav ul ul { padding-left: 1.5rem; margin-top: 0.5rem; }
+aside nav a {
+    display: block; margin-bottom: 0.5rem; text-decoration: none;
+    color: #121212; font-weight: 700; font-size: 1rem;
+    border-bottom: 2px solid transparent; transition: 0.2s;
+    opacity: 0.7;
+}
+aside nav a:hover, aside nav a.active { 
+    border-bottom: 2px solid #121212; 
+    opacity: 1;
+}
+
+main.article-main { 
+    padding: 5rem 6rem; background: var(--surface); position: relative; 
+    transition: background 0.3s;
+    min-width: 0; /* Fix for grid item expansion */
+}
+
+.article-hero { margin-bottom: 4rem; position: relative; }
+
+.blob-title {
+    position: absolute; top: -50px; left: -60px; width: 180px; height: 180px;
+    background: var(--red);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    z-index: 0; mix-blend-mode: multiply; opacity: 0.3;
+    animation: morph 8s ease-in-out infinite;
+}
+
+[data-theme="dark"] .blob-title { mix-blend-mode: normal; opacity: 0.4; }
+
+@keyframes morph {
+    0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg); }
+    33% { border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; transform: rotate(5deg); }
+    66% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(-5deg); }
+    100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg); }
+}
+
+article h1 {
+    font-size: 4.5rem; line-height: 1; 
+    letter-spacing: -1px; position: relative; z-index: 1; margin-bottom: 2rem;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.meta-bar {
+    display: flex; gap: 20px; font-family: 'Space Mono'; font-size: 0.9rem;
+    border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+    padding: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.content { 
+    font-size: 18px; 
+    line-height: 1.7; 
+    max-width: 800px; 
+    overflow-wrap: break-word; /* Better word breaking for mobile */
+}
+.content p { margin-bottom: 1.5rem; }
+
+.content p:first-of-type::first-letter,
+.content blockquote p:first-of-type::first-letter {
+    font-size: var(--drop-cap-size, 4rem);
+    float: left;
+    margin-right: 0.6rem;
+    line-height: 0.9;
+    font-weight: bold;
+    font-family: 'Space Grotesk', 'Huiwen-mincho', 'Noto Sans SC', sans-serif;
+}
+
+/* Opt-out for paragraphs whose first character must not be sliced off —
+   a drop cap on "2024.2.18…" splits the date into "2|024.2.18". main.js
+   adds .no-drop-cap when the paragraph starts with a digit, punctuation
+   or symbol. Must come AFTER the rules above to win the tie on
+   specificity — and it must undo EVERYTHING the drop-cap rule applies
+   (size, float, weight, family…), not just the size, or the first
+   character still renders in the drop-cap font. */
+.content p.no-drop-cap::first-letter,
+.content blockquote p.no-drop-cap::first-letter {
+    float: none;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    font-style: inherit;
+    line-height: inherit;
+    margin: 0;
+}
+
+.content h3 {
+    font-size: 2rem; margin: 3rem 0 1.5rem 0; 
+    border-left: 8px solid var(--yellow); padding-left: 1rem;
+}
+
+.hl-blue { color: var(--blue); font-weight: 700; }
+.hl-orange { color: var(--red); font-weight: 700; }
+.hl-green { color: var(--green); font-weight: 700; }
+
+.next-article {
+    margin-top: 6rem; padding: 3rem; border: var(--border);
+    background: var(--ink); color: var(--bg); text-align: center;
+    display: block; text-decoration: none; box-shadow: var(--shadow);
+    transition: 0.3s;
+}
+.next-article:hover { transform: translate(-5px, -5px); box-shadow: 15px 15px 0 var(--red); }
+
+/* Color Styles - Cartoon Palette */
+.style-red .card-inner { background: var(--red); color: white; }
+.style-red .meta { background: white; color: var(--red); }
+.style-blue .card-inner { background: var(--blue); color: white; }
+.style-blue .meta { background: white; color: var(--blue); }
+.style-green .card-inner { background: var(--green); color: #121212; }
+.style-green .meta { background: #121212; color: var(--green); }
+.style-yellow .card-inner { background: var(--yellow); color: #121212; }
+.style-yellow .meta { background: #121212; color: var(--yellow); }
+.style-grey .card-inner { background: var(--grey); color: var(--ink); }
+.style-black .card-inner { background: #121212; color: white; }
+.style-black .meta { background: white; color: #121212; }
+
+/* WCAG AA fix: white body copy on --red (3.55:1) and --blue (3.98:1) fails
+   the contrast minimum — worse once the summary's inline opacity: 0.8 kicks
+   in (~2.8:1). Body text (summary, date) moves into a white inset panel,
+   which is a classic neo-brutalist move anyway; the oversized titles stay
+   white (they pass as large text at 3:1). The !important beats the inline
+   opacity on the summary paragraphs — a translucent panel would defeat the
+   whole point. */
+.style-red .card-content p,
+.style-blue .card-content p {
+    background: #ffffff;
+    color: #121212;
+    opacity: 1 !important;
+    padding: 0.6rem 0.9rem;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .grid-container { grid-template-columns: 1fr; padding: 1rem; }
+    .span-8, .span-6, .span-4, .span-3, .row-2 { grid-column: span 1; grid-row: auto; }
+    .hero-slide h2 { font-size: 2rem !important; }
+    .profile-card { flex-direction: column; text-align: center; }
+    .profile-links { justify-content: center; }
+    .wrapper { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main.article-main { padding: 2rem; }
+    article h1 { font-size: 3rem; }
+    
+    /* Layout Adjustments */
+    .desktop-nav { display: none; }
+    .menu-btn { display: flex; }
+    
+    .site-footer { text-align: center; }
+}
+
+@media (max-width: 600px) {
+    main.article-main { padding: 1rem; }
+    header { padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+    article h1 { font-size: 2rem; }
+}
+
+/* Markdown Content Styling */
+.content h2 { 
+    margin-top: 3rem; margin-bottom: 1.5rem; font-size: 2.2rem; 
+    border-bottom: 4px solid var(--ink); padding-bottom: 0.5rem; 
+}
+.content h3 { 
+    font-size: 2rem; margin: 3rem 0 1.5rem 0; 
+    border-left: 8px solid var(--yellow); padding-left: 1rem;
+}
+.content h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1.4rem; font-weight: bold; }
+
+.content blockquote {
+    border-left: 6px solid var(--yellow);
+    background: var(--yellow);
+    color: #121212;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-style: italic;
+    font-family: 'Space Mono', 'Noto Sans SC', serif;
+    word-break: break-word;
+    box-shadow: var(--shadow);
+}
+.content blockquote p { margin-bottom: 0; }
+
+.content table {
+    width: 100%; border-collapse: collapse; margin: 2rem 0;
+    font-family: 'Space Mono', 'Noto Sans SC', monospace; font-size: 0.9rem;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.content th, .content td { padding: 0.8rem; text-align: left; }
+.content td { border: 2px solid var(--ink);}
+.content th { border: 2px solid var(--bg); background: var(--ink); color: var(--bg); }
+.content tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+
+/* Code Blocks */
+.content code {
+    font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--border-color);
+    padding: 0.2rem 0.5rem;
+    margin: 0 0.2rem;
+    border-radius: 0;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+.content code:hover { 
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--border-color);
+    background: var(--surface);
+    color: var(--ink);
+}
+.content code:active {
+    transform: translate(0, 0);
+    box-shadow: 1px 1px 0 var(--border-color);
+}
+
+/* --------------------------------------------------------------------------
+   Code block shell
+   .code-container  → positioning context, never scrolls
+     .code-toolbar  → language tag + copy button, pinned top-right
+     .highlight > pre → the ONLY horizontally scrollable element
+   -------------------------------------------------------------------------- */
+.content pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: pre; /* narrowed screens switch to pre-wrap, see media query */
+    border: none;
+    margin: 2rem 0;
+    font-family: 'Maple Mono NF CN', 'Space Mono', monospace;
+    font-size: 13pt;
+    line-height: 1.5;
+    /* The surface is dark in both themes, so the native scrollbar must be
+       dark too — otherwise Chrome paints a light track on it. */
+    color-scheme: dark;
+    scrollbar-width: thin;
+    scrollbar-color: #4a4a52 transparent;
+}
+.content pre code {
+    background: transparent; padding: 0; color: inherit;
+    cursor: text; border: none; box-shadow: none; margin: 0;
+    font-size: inherit; font-weight: normal;
+}
+.content pre code:hover { background: transparent; color: inherit; transform: none; box-shadow: none; }
+
+/* Code Block Container */
+.code-container {
+    position: relative;
+    margin: 2rem 0;
+}
+
+/* Inside a container the container owns the vertical rhythm, so the <pre>
+   must not add its own margin — otherwise the toolbar would be offset from
+   the top edge of the scroll box. */
+.code-container > pre,
+.code-container > .highlight,
+.code-container > .highlight > pre {
+    margin: 0;
+}
+
+/* --- Toolbar: stays put while the code scrolls --------------------------- */
+.code-toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+    /* Exactly the <pre> top padding, so the bar occupies the padding band
+       and never covers the first line of code. Because the band is empty
+       space, the bar can safely be a hover target itself. */
+    height: 1.5rem;
+    max-width: 100%;
+    overflow: hidden;
+    line-height: 1;
+    /* Hovering ANYWHERE on the bar — the language tag or the copy button —
+       reveals the copy button. */
+    pointer-events: auto;
+}
+
+/* Language tag */
+.code-lang {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0 8px;
+    background: var(--code-lang-bg);
+    color: var(--code-lang-fg);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Must stay interactive: it is one of the two hover triggers. */
+    pointer-events: auto;
+}
+
+/* Copy button — lives in .code-toolbar, NOT in <pre>, so it is anchored to
+   the container's right edge and stays visible on horizontally scrolled
+   code. DOM order is [copy-btn][code-lang], i.e. the language tag sits in
+   the far corner and the button appears to its left. */
+.copy-btn {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0 10px;
+    background: var(--code-ui-bg);
+    color: var(--code-ui-fg);
+    border: none;
+    border-right: 2px solid var(--code-lang-bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none; /* invisible button must not block text selection */
+    transition: opacity 0.2s, background 0.2s, color 0.2s;
+}
+/* Reveal triggers: the code block, the toolbar band, the language tag,
+   or the button itself. */
+.code-container:hover .copy-btn,
+.code-toolbar:hover .copy-btn,
+.code-lang:hover ~ .copy-btn,
+.copy-btn:hover,
+.copy-btn:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.copy-btn:hover { background: var(--code-ui-accent); color: #121212; }
+.copy-btn:active { background: var(--code-ui-fg); color: #121212; }
+
+/* Touch devices have no hover: keep the button permanently reachable. */
+@media (hover: none) {
+    .copy-btn { opacity: 1; pointer-events: auto; }
+}
+
+/* --- Line numbers ---------------------------------------------------------
+   The render hook injects an empty <span class="ln"> at the head of every
+   line; the digits themselves come from a CSS counter, so `innerText` (what
+   COPY grabs) never contains them and manual selection can't pick them up.
+
+   Layout contract for a numbered block:
+     .line   display:block      → one logical line
+     .ln     inline-block, position:sticky, width:var(--code-gutter)
+             → a fixed gutter that stays pinned while code scrolls under it
+     .cl     inline-block       → ALL of the line's wrapped rows stay inside
+                                   it, so they hang-indent past the gutter and
+                                   can never be mistaken for a new line
+   The gutter's background is --code-gutter-bg, the opaque equivalent of the
+   veil, so it masks sliding code without showing as a seam. */
+.highlight pre.chroma { counter-reset: lineno; }
+.highlight .line { counter-increment: lineno; }
+
+/* .linenos lives on the <pre> itself, so the gutter inset must be written
+   as pre.linenos — a `.linenos pre.chroma` descendant selector would never
+   match and the 1.5rem inset would come back. */
+pre.linenos.chroma { padding-left: 0; }
+
+.linenos .line { display: block; }
+.linenos .ln {
+    display: inline-block;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    vertical-align: top;
+    width: var(--code-gutter);
+    padding-right: 1.1em;
+    text-align: right;
+    background: var(--code-gutter-bg);
+    color: var(--code-lineno);
+}
+.linenos .ln::before { content: counter(lineno); }
+.linenos .cl {
+    display: inline-block;
+    vertical-align: top;
+}
+
+/* Narrow screens: wrapping beats horizontal scrolling on a phone. Line
+   numbers stay on — with the hang-indent above, wrapped rows keep their
+   place in the gutter column instead of reading as new lines. */
+@media (max-width: 640px) {
+    .content pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    /* Wrapped-mode layout repair. In horizontal-scroll mode .cl is an
+       inline-block with an huge max-content width and .ln pins itself via
+       position:sticky — fine. But under pre-wrap Chrome computes the
+       inline-block's shrink-to-fit width against the FULL content box,
+       not the space left of the gutter. Any line longer than
+       (pre − gutter) then cannot fit beside .ln, drops BELOW it, and the
+       code starts at x=0 with the line number stranded on its own row.
+       A flex row fixes the geometry: .ln keeps its fixed gutter, .cl
+       occupies exactly the remaining width and wraps inside it. As a
+       bonus, align-items:stretch makes the opaque gutter background cover
+       wrapped rows instead of stopping after the first line. */
+    .linenos .line {
+        display: flex;
+        align-items: stretch;
+    }
+    .linenos .ln {
+        flex: 0 0 auto;
+    }
+    .linenos .cl {
+        display: block;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+/* ==========================================================================
+   SYNTAX HIGHLIGHTING — Hugo / Chroma, class-based
+   --------------------------------------------------------------------------
+   Palette name : "Polymer Dark"
+   Surface      : #1e1e1e   (== VS Code Dark+ background)
+   Requires     : [markup.highlight] noClasses = false   (see hugo.toml)
+
+   Class names below are Chroma's *short* token names. Hugo emits:
+       <div class="highlight"><pre class="chroma">
+           <code class="language-c"><span class="cp">#include</span> …
+   so every rule is scoped to .highlight.
+
+   Design rule: one role = one colour. Comment, preprocessor, keyword,
+   type, string, number, function and variable each get a distinct hue, so
+   a token can never be confused with another family (the old inline
+   Monokai palette painted `#include` in the comment grey #75715e).
+   ========================================================================== */
+
+/* The code surface is owned by this theme, NOT by whatever Chroma style is
+   loaded. These selectors outrank both `.content pre` and a generated
+   `.chroma { background-color: … }` sheet, so a palette can be swapped in
+   without silently dragging its own background along. To adopt another
+   style's surface, change --code-bg / --code-fg instead of fighting
+   specificity. */
+.highlight { background: transparent; }
+.highlight pre,
+.highlight pre.chroma {
+    background: var(--code-bg);
+    color: var(--code-fg);
+}
+
+/* --- Comments — muted green, italic (never reuse for preprocessor) ------- */
+.highlight .c,
+.highlight .ch,   /* #! shebang            */
+.highlight .cm,   /* block comment         */
+.highlight .c1,   /* // line comment       */
+.highlight .cs {  /* doc comment           */
+    color: #6a9955;
+    font-style: italic;
+}
+
+/* --- Preprocessor / directives — magenta, bold --------------------------
+   `#include`, `#define`, `#ifdef`, `#pragma` … were previously the same
+   grey as comments. They now get their own role. */
+.highlight .cp  { color: #c586c0; font-weight: bold; }
+.highlight .cpf { color: #ce9178; font-weight: normal; } /* <iostream>, "foo.h" */
+
+/* --- Keywords ----------------------------------------------------------- */
+.highlight .k,    /* keyword (if/else/for/return/struct/static/typedef) */
+.highlight .kc,   /* constant keyword (true / false / null)             */
+.highlight .kd,   /* declaration (let / var / def / function)           */
+.highlight .kn,   /* namespace (using / import / package)               */
+.highlight .kp,   /* pseudo keyword (__init__ …)                        */
+.highlight .kr,   /* reserved word                                      */
+.highlight .kw {  /* legacy alias                                       */
+    color: #c586c0;
+}
+
+/* Types get their own colour so declarations read at a glance. */
+.highlight .kt { color: #569cd6; } /* int / char / void / double / bool */
+
+/* Word operators: and / or / not / in / is */
+.highlight .ow { color: #c586c0; }
+
+/* --- Strings ------------------------------------------------------------ */
+.highlight .s, .highlight .sa,
+.highlight .sb, .highlight .s1, .highlight .s2,
+.highlight .sc, .highlight .sd,
+.highlight .sh, .highlight .si,
+.highlight .sx, .highlight .ss,
+.highlight .dl {
+    color: #ce9178;
+}
+.highlight .se { color: #d7ba7d; }              /* \n  \t  %s  escapes   */
+.highlight .sr { color: #d16969; }              /* regex                 */
+
+/* --- Numbers & literals ------------------------------------------------- */
+.highlight .m, .highlight .mb, .highlight .mf,
+.highlight .mh, .highlight .mi, .highlight .mo,
+.highlight .il,
+.highlight .l, .highlight .ld {
+    color: #b5cea8;
+}
+
+/* --- Functions ---------------------------------------------------------- */
+.highlight .nf,   /* function name  */
+.highlight .fm,   /* magic function */
+.highlight .nd,   /* decorator      */
+.highlight .ni {  /* entity         */
+    color: #dcdcaa;
+}
+
+/* --- Names -------------------------------------------------------------- */
+.highlight .n  { color: inherit; }  /* plain identifier                   */
+.highlight .na, /* attribute      */
+.highlight .nt, /* tag            */
+.highlight .nv, /* variable       */
+.highlight .vg, /* global var     */
+.highlight .vi, /* instance var   */
+.highlight .vm, /* magic var      */
+.highlight .py, /* property       */
+.highlight .nl, /* label          */
+.highlight .nx { color: #9cdcfe; }  /* other name (call sites)            */
+
+.highlight .nc,   /* class          */
+.highlight .nn,   /* namespace name */
+.highlight .ne,   /* exception      */
+.highlight .nb,   /* builtin        */
+.highlight .bp {  /* builtin pseudo */
+    color: #4ec9b0;
+}
+
+.highlight .no { color: #4fc1ff; }  /* constant / enum member             */
+
+/* --- Punctuation & operators -------------------------------------------- */
+.highlight .p  { color: #d4d4d4; }  /* ( ) { } [ ] ; , : . -> */
+.highlight .o  { color: #d4d4d4; }  /* + - * / = == && || */
+.highlight .w  { color: inherit; }  /* whitespace — never colour it */
+
+/* --- Text / generic ----------------------------------------------------- */
+.highlight .gd { color: #f44747; }                /* deleted            */
+.highlight .gi { color: #4ec9b0; }                /* inserted           */
+.highlight .ge { font-style: italic; }            /* emph               */
+.highlight .gs { font-weight: bold; }             /* strong             */
+.highlight .gh, .highlight .gu {                  /* heading subheading */
+    color: #569cd6;
+    font-weight: bold;
+}
+.highlight .gt { color: #f44747; }                /* traceback          */
+.highlight .gp { color: #6a9955; }                /* prompt             */
+.highlight .go { color: #808080; }                /* output             */
+.highlight .gr, .highlight .err {                 /* error              */
+    color: #f44747;
+    text-decoration: underline wavy #f44747;
+}
+
+/* --- Line numbers / line highlight --------------------------------------
+   Only rendered when a code fence sets lineNos / hl_lines. */
+.highlight .ln, .highlight .lnt { color: #858585; }
+.highlight .hl {
+    display: block;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 3px 0 0 var(--code-lang-bg);
+}
+
+
+.content ul, .content ol { padding-left: 2rem; margin-bottom: 2rem; }
+.content li { margin-bottom: 0.5rem; }
+
+/* Todo List (Task List) Styles */
+.content ul.task-list { list-style: none; padding-left: 0; }
+.content ul li:has(input[type="checkbox"]) { list-style: none; }
+.content ul li input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 1.2em; height: 1.2em;
+    border: 2px solid var(--ink); background: var(--surface);
+    margin-right: 0.5em; vertical-align: middle; position: relative; cursor: pointer;
+}
+.content ul li input[type="checkbox"]:checked {
+    background: var(--green); border-color: var(--ink);
+}
+.content ul li input[type="checkbox"]:checked::after {
+    content: '✓'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); font-size: 0.9em; font-weight: bold; color: #121212;
+}
+
+.content hr { border: 0; border-top: var(--border); margin: 3rem 0; }
+.content img { max-width: 100%; border: var(--border); box-shadow: var(--shadow); margin: 2rem 0; }
+
+/* Links in Content */
+.content a {
+    color: var(--ink); text-decoration: none; font-weight: bold;
+    border-bottom: 2px solid var(--ink); transition: 0.2s;
+    position: relative;
+}
+.content a:hover {
+    background: var(--ink); color: var(--bg);
+    box-shadow: 4px 4px 0 var(--border-color);
+}
+
+/* Fix inline code in headings - reduce visual weight to not block content */
+.content h1 code, .content h2 code, .content h3 code, .content h4 code {
+    font-size: 0.75em;
+    vertical-align: middle;
+    padding: 0.1rem 0.3rem;
+    border-width: 2px;
+    box-shadow: 1px 1px 0 var(--border-color);
+}
+
+.content h1 code { top: -5.5pt; }
+.content h2 code { top: -3pt; }
+.content h3 code { top: -1pt; }
+
+/* Fix drop cap inside links */
+.content > p:first-of-type > a:first-child::first-letter,
+.content > p:first-of-type::first-letter a {
+    color: inherit;
+    text-decoration: none;
+}
+.content > p:first-of-type::first-letter {
+    position: relative;
+    z-index: 0;
+}
+
+/* Ruby */
+ruby {
+    font-size: inherit;
+    /* ruby-align decides how the annotation tracks against the base:
+       - space-around (this): when the annotation is NARROWER than the base
+         (大傻子 over 小可爱, 三个字 over 字数不对等) its glyphs distribute
+         to fill the base width; when it is as wide as or wider than the
+         base (かんじ over 漢字, "ul pb" over 双拼) it stays at natural
+         width, centred — the blog-writer reference look.
+       - center would tighten EVERY annotation (大傻子 collapses), and the
+         raw default is implicit, so declare it explicitly and keep the
+         intent documented. */
+    ruby-align: space-around;
+}
+rt {
+    font-size: 0.6em;
+    color: var(--dark-grey);
+    /* rt inherits .content's 1.7 line-height, which inflates the ruby's
+       line box and pushes lines apart wherever a ruby appears. */
+    line-height: 1.15;
+}
+
+/* Footnotes */
+.footnotes {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: var(--border);
+    font-size: 0.9rem;
+}
+
+.footnotes ol { padding-left: 1.5rem; }
+.footnotes li { margin-bottom: 0.5rem; }
+
+/* Footnote references */
+sup.footnote-ref a {
+    text-decoration: none;
+    border-bottom: none;
+    font-family: 'Space Mono';
+    margin: 0 2px;
+}
+
+sup.footnote-ref a:hover {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: none;
+    text-decoration: underline;
+}
+
+/* Reset drop cap inside footnotes */
+.footnotes p::first-letter {
+    float: none !important;
+    font-size: inherit !important;
+    font-weight: normal !important;
+    margin: 0 !important;
+    line-height: inherit !important;
+    /* NOTE: the family list must NOT be wrapped in quotes — quoting the
+       whole string makes it one invalid family name and the declaration
+       gets dropped. */
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif !important;
+}
+
+/* Target highlight for footnotes */
+:target {
+    animation: highlight 2s ease-in-out;
+    scroll-margin-top: 100px; /* Offset for header/padding */
+}
+
+@keyframes highlight {
+    0% { background-color: var(--yellow); }
+    100% { background-color: transparent; }
+}
+
+/* Archive Page Styles */
+.archive-main { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+.archive-main--wide { max-width: 1600px; }
+.archive-title { font-size: 4rem; margin-bottom: 4rem; border-bottom: var(--border); padding-bottom: 1rem; }
+.timeline { border-left: var(--border); padding-left: 2rem; position: relative; }
+.archive-year-group { position: relative; margin-bottom: 3rem; }
+.archive-year { 
+    font-size: 3rem; background: var(--yellow); color: #121212; 
+    display: inline-block; padding: 0 1rem; border: var(--border); 
+    transform: translateX(-4rem); position: relative; z-index: 2;
+}
+.archive-year-list { margin-top: 2rem; }
+.archive-item { margin-bottom: 1.5rem; display: flex; align-items: baseline; gap: 20px; }
+.archive-date { font-family: 'Space Mono'; opacity: 0.6; font-size: 0.9rem; }
+.archive-link { 
+    color: inherit; text-decoration: none; font-size: 1.5rem; 
+    font-weight: 700; border-bottom: 2px solid transparent; 
+}
+.archive-link:hover { border-bottom-color: var(--ink); }
+
+@media (max-width: 900px) {
+    .archive-year { transform: translateX(-2rem); font-size: 2rem; }
+    .timeline { padding-left: 1rem; }
+    .archive-item { flex-direction: column; gap: 5px; }
+
+    /* Mobile Cards: no masonry, full-width cards */
+    .grid-container .card-wrapper.span-3,
+    .grid-container .card-wrapper.span-4,
+    .grid-container .card-wrapper.span-6,
+    .grid-container .card-wrapper.span-8 {
+        grid-column: span 12;
+    }
+    .grid-container .card-wrapper.span-4 .card-inner,
+    .grid-container .card-wrapper.span-3 .card-inner,
+    .grid-container .card-wrapper.span-6 .card-inner,
+    .grid-container .card-wrapper.span-8 .card-inner {
+        flex-direction: column !important;
+        text-align: center;
+    }
+    .grid-container .card-wrapper.span-4 .card-inner div,
+    .grid-container .card-wrapper.span-3 .card-inner div,
+    .grid-container .card-wrapper.span-6 .card-inner div,
+    .grid-container .card-wrapper.span-8 .card-inner div {
+        margin: 0 auto;
+    }
+
+    /* Mobile Author Profile: Icon only for contact buttons */
+    .contact-btn {
+        padding: 8px;
+        font-size: 0; /* Hide text */
+    }
+    .contact-btn svg {
+        margin: 0;
+    }
+}
+
+/* Qmoji Styles */
+.qmoji {
+    display: inline-block;
+    vertical-align: text-bottom;
+    height: 1.2em;
+    width: auto;
+    border: none !important;
+    margin: 0 1px !important;
+    box-shadow: none !important;
+    cursor: default !important;
+}
+
+.super-qmoji {
+    display: inline-block;
+    vertical-align: text-bottom;
+    width: auto;
+    height: 1.2em;
+    margin: 0 1px;
+}
+
+.qmoji-container-block {
+    display: block;
+    text-align: center;
+    margin: 1rem 0;
+    padding: 1rem;
+}
+
+.qmoji-block {
+    height: 4em;
+    width: auto;
+}
+
+.super-qmoji.qmoji-block {
+    width: auto;
+    height: 4em;
+}
+
+.qq-emoji-error {
+    color: var(--dark-grey);
+    font-size: small;
+    font-style: italic;
+}
+
+/* Mobile TOC Overrides */
+.mobile-menu .mobile-toc {
+    width: 100%;
+    max-width: 400px;
+    max-height: 40vh;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.03);
+    padding: 1rem;
+    /* Square corners, like every other panel on the site. */
+    border-radius: 0;
+    margin-bottom: 1rem;
+}
+
+.mobile-menu .mobile-toc nav {
+    display: block;
+    text-align: left;
+    gap: 0;
+}
+
+.mobile-menu .mobile-toc nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-menu .mobile-toc nav ul li {
+    margin-bottom: 0.5rem;
+}
+
+.mobile-menu .mobile-toc nav ul ul {
+    padding-left: 1rem;
+    margin-top: 0.5rem;
+}
+
+.mobile-menu .mobile-toc nav a {
+    font-size: 0.9rem !important;
+    font-family: 'Space Mono', monospace !important;
+    font-weight: normal !important;
+    color: var(--ink) !important;
+    text-decoration: none;
+    opacity: 0.7;
+    display: block;
+    line-height: 1.4;
+    white-space: normal;
+}
+
+.mobile-menu .mobile-toc nav a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* --- NEW STYLES --- */
+
+/* Tooltip */
+.custom-tooltip {
+    position: fixed;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 5px 10px;
+    /* Zero radius — the whole site speaks hard right angles; the old 4px
+       here was a leak, not a decision. */
+    border-radius: 0;
+    font-size: 0.8rem;
+    font-family: 'Space Mono';
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10002;
+    transform: translate(-50%, 0);
+}
+.custom-tooltip.visible {
+    opacity: 1;
+}
+
+/* Math Copy Button */
+.katex-display, .mjx-container[display="true"] {
+    position: relative;
+}
+.katex-display:hover .copy-btn, .mjx-container[display="true"]:hover .copy-btn {
+    opacity: 1;
+}
+
+[data-waline] mjx-container,
+[data-waline] mjx-container * {
+    line-height: 0;
+}
+
+/* Image Captions */
+.image-figure {
+    margin: 2rem 0;
+    text-align: center;
+}
+.image-figure figcaption {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--dark-grey);
+    margin-top: 0.5rem;
+    font-style: italic;
+}

@@ -1,0 +1,122 @@
+// Run against `bun dev`. Uses a fresh browser context and never saves blog files.
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const fs = require('node:fs');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const page = await context.newPage();
+  const faults = [];
+  page.on('pageerror', (error) => faults.push(error.message));
+  const base = process.env.WRITER_URL || 'http://localhost:5173';
+  const shots = path.resolve(__dirname, '../../../.shots/writer-test');
+  fs.mkdirSync(shots, { recursive: true });
+  // This is a behavior probe, not an integration write against the real blog.
+  await context.route('**/api/**', (route) => {
+    if (route.request().method() !== 'GET') return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":"验证期间禁止写入博客"}' });
+    return route.continue();
+  });
+  try {
+    await page.goto(base);
+    await page.locator('.workspace-picker .select-menu-trigger').click();
+    await page.getByRole('menu', { name: '工作区' }).waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getByRole('menu', { name: '工作区' }).count(), 0);
+    await page.getByRole('button', { name: '排序:' }).click();
+    await page.getByRole('menu', { name: '排序' }).waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: '作者筛选:' }).click();
+    await page.getByRole('menu', { name: '作者筛选' }).waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await page.locator('.topbar .icon-btn.primary').last().click();
+    await page.getByRole('dialog').getByRole('button', { name: /作者/ }).click();
+    await page.getByRole('menu').waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').getByRole('button', { name: '关闭' }).click();
+    await page.getByRole('button', { name: /Writer Test/ }).click();
+    await page.locator('.tiptap').waitFor();
+    await page.waitForFunction(() => document.querySelectorAll('.raw-block mjx-container').length === 4, { timeout: 30000 });
+    await page.waitForFunction(() => document.querySelectorAll('.qmoji-atom svg').length === 2);
+    assert.ok(await page.evaluate(() => window.lottie.getRegisteredAnimations().every((animation) => animation.isPaused)), 'offscreen animations should pause');
+    assert.equal(await page.locator('.qmoji-atom img').count(), 2);
+    assert.equal(await page.locator('.post-item.active .post-author').innerText(), 'spixed');
+    assert.equal(await page.locator('mjx-merror').count(), 0, 'all math including chemistry must typeset');
+    const original = await page.locator('.tiptap').evaluate((el) => el.editor.getJSON());
+    const initialCode = original.content.filter((n) => n.type === 'codeBlock');
+    const code = page.locator('.editor-code-container').nth(1);
+    await code.scrollIntoViewIfNeeded();
+    const before = await code.locator('.code-lang').boundingBox();
+    await code.locator('pre').evaluate((el) => { el.scrollLeft = el.scrollWidth; });
+    const after = await code.locator('.code-lang').boundingBox();
+    assert.equal(after.x, before.x, 'language label stays pinned while scrolling');
+    assert.equal(await code.locator('.editor-code-gutter span').count(), 3);
+    await code.screenshot({ path: path.join(shots, 'code.png') });
+    // Add a real newline to a code block: numbering changes, source stays plain.
+    await page.locator('.tiptap').evaluate((el) => {
+      const editor = el.editor; let pos;
+      editor.state.doc.descendants((n, p) => { if (pos === undefined && n.type.name === 'codeBlock') pos = p + n.nodeSize - 1; });
+      editor.commands.setTextSelection(pos); editor.commands.insertContent('\n# regression');
+    });
+    assert.equal(await page.locator('.editor-code-container').first().locator('.editor-code-gutter span').count(), 5);
+    const edited = await page.locator('.tiptap').evaluate((el) => el.editor.getJSON().content.filter((n) => n.type === 'codeBlock'));
+    assert.equal(edited[0].content[0].text, initialCode[0].content[0].text + '\n# regression');
+    await page.locator('.tiptap').evaluate((el) => el.editor.commands.undo());
+    // Native Ctrl-click must reach the DOM handler before TipTap consumes it.
+    const popupPromise = context.waitForEvent('page');
+    await page.locator('.tiptap a[href="https://baidu.com"]').click({ modifiers: ['Control'] });
+    const popup = await popupPromise; await popup.close();
+    await page.getByRole('button', { name: '即时渲染', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.preview-prose')?.textContent.includes('这是H1') && !document.querySelector('.preview-loading'));
+    await page.waitForFunction(() => document.querySelectorAll('.preview-prose mjx-container').length === 5);
+    await page.waitForFunction(() => document.querySelectorAll('.preview-prose .qmoji svg').length === 2);
+    const codeColors = await page.locator('.preview-prose .code-container').nth(1).evaluate((block) => {
+      const token = (text) => [...block.querySelectorAll('.shiki span[style]')].find((el) => el.textContent.trim() === text);
+      return Object.fromEntries(['int', 'printf', 'return', '0'].map((text) => [text, token(text) && getComputedStyle(token(text)).color]));
+    });
+    assert.deepEqual(codeColors, { int: 'rgb(86, 156, 214)', printf: 'rgb(220, 220, 170)', return: 'rgb(197, 134, 192)', 0: 'rgb(181, 206, 168)' });
+    assert.equal(await page.evaluate(() => window.lottie.getRegisteredAnimations().length), 2, 'unmounted WYSIWYG animations must be destroyed');
+    assert.equal(await page.locator('.preview-error').count(), 0);
+    await page.locator('.preview-scroll').evaluate((el) => { el.scrollTop = 0; });
+    await page.screenshot({ path: path.join(shots, 'split.png') });
+    await page.getByRole('button', { name: '所见即所得', exact: true }).click();
+    await page.locator('.tiptap').waitFor();
+    await page.locator('.wysiwyg-scroll').evaluate((el) => { el.scrollTop = 0; });
+    await page.screenshot({ path: path.join(shots, 'light.png') });
+    await page.locator('.theme-picker .select-menu-trigger').click();
+    await page.getByRole('menu', { name: '界面外观' }).waitFor({ state: 'visible' });
+    await page.getByRole('menuitemradio', { name: /深色模式/ }).click();
+    assert.equal(await page.locator('html').getAttribute('data-app-theme'), 'dark');
+    await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
+    await page.screenshot({ path: path.join(shots, 'dark.png') });
+    await page.locator('.theme-picker .select-menu-trigger').click();
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('.theme-picker .select-menu-popover').count(), 0);
+    await page.locator('.theme-picker .select-menu-trigger').click();
+    await page.getByRole('menuitemradio', { name: /浅色模式/ }).click();
+    await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
+    await page.locator('.ft-slash-command').click();
+    await page.locator('.slash-menu button').filter({ hasText: '图片' }).click();
+    await page.getByLabel('图片地址', { exact: true }).fill('/missing-regression.png');
+    await page.getByText('图片无法加载，请检查地址').waitFor();
+    await page.getByLabel('图片地址', { exact: true }).fill('/birthday_spixed/meme.png');
+    await page.waitForFunction(() => document.querySelector('.image-dialog-preview img')?.naturalWidth > 0);
+    await page.getByLabel('图片注释').fill('回归测试图注');
+    await page.screenshot({ path: path.join(shots, 'image.png') });
+    await page.getByRole('tab', { name: '媒体库' }).click();
+    await page.locator('.media-card').first().waitFor();
+    await page.getByLabel('搜索媒体').fill('meme');
+    await page.locator('.media-card').first().click();
+    assert.equal(await page.locator('.media-card.selected').count(), 1);
+    await page.screenshot({ path: path.join(shots, 'media.png') });
+    await page.getByRole('button', { name: '插入图片', exact: true }).click();
+    assert.equal(await page.getByRole('dialog').count(), 0);
+    assert.ok(await page.locator('.tiptap').evaluate((el) => JSON.stringify(el.editor.getJSON()).includes('回归测试图注')));
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: path.join(shots, 'mobile.png') });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.deepEqual(faults, []);
+    console.log('PASS: math, Qmoji, author, Ctrl-click, editable code and line numbers, live preview, themes, image preview recovery, media selection, mobile width.');
+  } finally { await browser.close(); }
+})().catch((error) => { console.error(error); process.exitCode = 1; });

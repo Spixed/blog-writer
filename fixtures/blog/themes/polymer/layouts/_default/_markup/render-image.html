@@ -1,0 +1,33 @@
+{{- $u := urls.Parse .Destination -}}
+{{- $src := $u.String -}}
+{{- $query := $u.Query -}}
+{{- $width := $query.Get "width" -}}
+{{- $height := $query.Get "height" -}}
+{{- $style := "" -}}
+
+{{- if $width -}}
+  {{- if findRE "^[0-9]+$" $width -}}
+    {{- $width = printf "%spx" $width -}}
+  {{- end -}}
+  {{- $style = printf "width: %s;" $width -}}
+{{- end -}}
+
+{{- if $height -}}
+  {{- if findRE "^[0-9]+$" $height -}}
+    {{- $height = printf "%spx" $height -}}
+  {{- end -}}
+  {{- $style = printf "%s height: %s;" $style $height -}}
+{{- end -}}
+
+<figure class="image-figure">
+    <img src="{{ $src | safeURL }}"
+         alt="{{ .Text }}"
+         {{ with .Title }}title="{{ . }}"{{ end }}
+         {{ if ne $style "" }}style="{{ $style | safeCSS }}"{{ end }}
+         class="content-image"
+         loading="lazy"
+    />
+    {{ if .Text }}
+    <figcaption>{{ .Text | safeHTML }}</figcaption>
+    {{ end }}
+</figure>

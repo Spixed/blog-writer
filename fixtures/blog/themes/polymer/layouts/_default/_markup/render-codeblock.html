@@ -1,0 +1,33 @@
+{{- /*
+  Code block render hook.
+
+  Layout contract (do not flatten this back into a single <pre>):
+    .code-container  → positioning context, never scrolls
+      .code-toolbar  → language tag + copy button, pinned to the top-right
+      .highlight > pre → the ONLY horizontally scrollable element
+
+  The copy button is injected into .code-toolbar by main.js, *prepended* so
+  the rendered order is [COPY][LANG].
+
+  Line numbers: transform.Highlight emits
+      <span class="line"><span class="cl">…\n</span></span>
+  Two regex passes below turn that into
+      <span class="line"><span class="ln"></span><span class="cl">…</span></span>
+  - .ln is an empty gutter cell; its digits come from a CSS counter, so
+    `innerText` (what COPY grabs) never contains numbers.
+  - Chroma stores the line break inside .cl; once main.js flips .line to
+    display:block that break would double the leading, so it is stripped.
+  If either replacement stops matching (Chroma output format changed), the
+  gutter silently disappears and main.js skips the .linenos class — the
+  block degrades to plain highlighting instead of breaking.
+*/ -}}
+<div class="code-container">
+    <div class="code-toolbar">
+        {{- with .Type }}<span class="code-lang">{{ . | upper }}</span>{{ end -}}
+    </div>
+    {{- $result := transform.Highlight .Inner .Type .Options -}}
+    {{- /* replaceRE returns a plain string, so re-mark it as HTML or Hugo escapes it */ -}}
+    {{- $result = replaceRE `<span class="line"><span class="cl">` `<span class="line"><span class="ln"></span><span class="cl">` $result | safeHTML -}}
+    {{- $result = replaceRE "\n</span></span>" "</span></span>" $result | safeHTML -}}
+    {{- $result -}}
+</div>

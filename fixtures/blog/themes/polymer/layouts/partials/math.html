@@ -1,0 +1,7 @@
+{{ if or .Params.math .Site.Params.math }}
+  {{ if eq .Site.Params.mathEngine "katex" }}
+    {{ partial "katex.html" . }}
+  {{ else }}
+    {{ partial "mathjax.html" . }}
+  {{ end }}
+{{ end }}

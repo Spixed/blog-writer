@@ -1,0 +1,73 @@
+async (page) => {
+  const assert = (ok, message) => { if (!ok) throw new Error(message); };
+  page.setDefaultTimeout(5000);
+  const writes = [];
+  const saved = new Map();
+  await page.route('**/api/posts/**', async route => {
+    const request = route.request();
+    if (request.method() === 'PUT') {
+      const data = request.postDataJSON();
+      writes.push({ at: Date.now(), ...data });
+      const response = await route.fetch({ method: 'GET', postData: undefined });
+      saved.set(request.url(), { ...await response.json(), ...data });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    } else if (saved.has(request.url())) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(saved.get(request.url())) });
+    } else await route.continue();
+  });
+  await page.goto('http://localhost:5173/');
+  await page.getByRole('button', { name: 'Qmoji 表情展示 2024-05-23', exact: true }).click();
+  await page.getByRole('button', { name: '所见即所得', exact: true }).click();
+  if (await page.getByRole('button', { name: '自动保存：开', exact: true }).count()) await page.getByRole('button', { name: '自动保存：开', exact: true }).click();
+  await page.locator('.qmoji-atom').first().waitFor();
+  assert(await page.locator('.raw-block').count() === 0, 'Qmoji prose became a raw block');
+  assert(await page.locator('.qmoji-block-atom').count() === 2, 'Block Qmoji count changed');
+  await page.locator('.qmoji-atom').first().click();
+  await page.getByLabel('Qmoji 显示方式').selectOption('block');
+  assert(await page.locator('.qmoji-block-atom').count() === 3, 'Qmoji mode edit failed');
+  await page.getByLabel('Qmoji 显示方式').selectOption('inline');
+  await page.getByRole('button', { name: /替换 Qmoji/ }).click();
+  await page.getByPlaceholder('搜索表情名称…').fill('微笑');
+  await page.locator('.qmoji-cell').first().click();
+  await page.evaluate(() => { const e = document.querySelector('.tiptap').editor; e.commands.focus('end'); });
+  await page.getByTitle('Slash commands', { exact: true }).click();
+  await page.locator('.slash-menu').waitFor();
+  await page.keyboard.press('Escape');
+  assert(await page.locator('.slash-menu').count() === 0, 'Escape did not dismiss slash menu');
+  await page.keyboard.press('Enter');
+  assert(await page.locator('.slash-menu').count() === 0, 'Dismissed slash command executed on Enter');
+  await page.waitForTimeout(1300);
+  assert(writes.length === 0, 'Autosave wrote despite being disabled');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForTimeout(2500);
+  assert(writes.length === 1, 'Manual save repeated');
+  assert(await page.getByRole('button', { name: '保存', exact: true }).isDisabled(), 'Save button stayed dirty');
+  await page.getByRole('button', { name: '自动保存：关', exact: true }).click();
+  await page.getByRole('button', { name: '即时渲染', exact: true }).click();
+  const textarea = page.getByRole('textbox', { name: 'Markdown source', exact: true });
+  const body = await textarea.inputValue();
+  const changedAt = Date.now();
+  await textarea.fill(body + '\n测试自动保存');
+  await page.waitForTimeout(600);
+  assert(writes.length === 1, 'Autosave fired before debounce');
+  await page.waitForTimeout(1800);
+  assert(writes.length === 2, 'Autosave missing or repeated');
+  assert(writes[1].at - changedAt >= 950, 'Autosave was not debounced for 1 second');
+  await page.waitForTimeout(1500);
+  assert(writes.length === 2, 'Autosave continued writing an unchanged post');
+  await page.getByRole('button', { name: '自动保存：开', exact: true }).click();
+  await textarea.fill('{{< qq');
+  await page.locator('.markdown-completions button').first().click();
+  assert(await textarea.inputValue() === '{{< qq-emoji "微笑" >}}', 'Shortcode completion is invalid');
+  await textarea.fill('/code');
+  await page.keyboard.press('Enter');
+  assert(await textarea.inputValue() === '```text\n\n```', 'Code completion did not insert Markdown');
+  await textarea.fill('{{<');
+  await page.keyboard.press('Escape');
+  assert(await page.locator('.markdown-completions').count() === 0, 'Source completion did not dismiss');
+  const report = { pass: true, writes: writes.length, debounceMs: writes[1].at - changedAt, checks: ['Qmoji mode/replacement', 'slash Escape', 'manual save', 'autosave debounce', 'shortcode/block completion'] };
+  await page.evaluate(report => { window.__interactionResult = report; }, report);
+  await page.unroute('**/api/posts/**');
+  return report;
+}
+

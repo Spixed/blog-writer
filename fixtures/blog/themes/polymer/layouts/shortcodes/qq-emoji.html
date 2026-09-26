@@ -1,0 +1,62 @@
+{{- $emojiName := .Get 0 -}}
+{{- $mode := .Get 1 | default "inline" -}}
+{{- if not $emojiName -}}
+    <span class="qq-emoji-error">❌ 请提供表情名称</span>
+{{- else -}}
+    {{- $target := printf "/%s" $emojiName -}}
+    {{- /* Check if input already starts with / */ -}}
+    {{- if hasPrefix $emojiName "/" -}}
+        {{- $target = $emojiName -}}
+    {{- end -}}
+    
+    {{- $found := false -}}
+    {{- $match := dict -}}
+    
+    {{- /* Iterate through data */ -}}
+    {{- range site.Data.qmoji.mapping -}}
+        {{- if eq .describe $target -}}
+            {{- $found = true -}}
+            {{- $match = . -}}
+            {{- break -}}
+        {{- end -}}
+    {{- end -}}
+    
+    {{- if $found -}}
+        {{- $url := printf "https://cdn.jsdelivr.net/gh/Spixed/Qmoji@main/res/%s" $match.emojiId -}}
+        {{- $class := printf "qmoji qmoji-%s" $mode -}}
+        {{- if eq $mode "block" -}}
+            <div class="qmoji-container-block">
+        {{- end -}}
+        
+        {{- if eq (int $match.emojiType) 1 -}}
+            <img src="{{ $url }}/apng.png" class="{{ $class }}" alt="{{ $match.describe }}" title="{{ $match.describe }}" />
+        {{- else if eq (int $match.emojiType) 0 -}}
+            <img src="{{ $url }}/thumb.png" class="{{ $class }}" alt="{{ $match.describe }}" title="{{ $match.describe }}" />
+        {{- else if eq (int $match.emojiType) 2 -}}
+            {{- $uniqueId := printf "lottie-emoji-%s-%d" $match.emojiId now.UnixNano -}}
+            <span id="{{ $uniqueId }}" class="super-qmoji qmoji-lottie {{ $class }}" data-lottie-path="{{ $url }}/lottie.json" title="{{ $match.describe }}"></span>
+        {{- end -}}
+        
+        {{- if eq $mode "block" -}}
+            </div>
+        {{- end -}}
+    {{- else -}}
+        <span class="qq-emoji-error">(未找到表情: {{ $emojiName }})</span>
+    {{- end -}}
+{{- end -}}
+<script>
+    (function() {
+        var s = document.currentScript;
+        if (s) {
+            var el = s.previousElementSibling;
+            if (el && (el.closest('pre') || el.closest('code'))) {
+                var name = "{{ .Get 0 }}";
+                var mode = "{{ .Get 1 | default "" }}";
+                var raw = '{{ "{{" }}< qq-emoji "' + name + '"' + (mode ? ' "' + mode + '"' : '') + ' >{{ "}}" }}';
+                var text = document.createTextNode(raw);
+                el.parentNode.replaceChild(text, el);
+                s.remove();
+            }
+        }
+    })();
+</script>

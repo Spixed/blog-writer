@@ -1,0 +1,27 @@
+{{ define "main" }}
+<main class="grid-container">
+    <div style="grid-column: span 12; margin-bottom: 2rem;">
+        <h1 style="font-size: 4rem; text-transform: uppercase; border-bottom: var(--border); padding-bottom: 1rem;">
+            {{ T "links" | default "LINKS" }}
+        </h1>
+    </div>
+    
+    {{ if .Site.Data.links }}
+        {{ range .Site.Data.links.friends }}
+        <div class="card-wrapper span-4 style-grey">
+            <a href="{{ .url }}" target="_blank" class="card-inner" style="display: flex; flex-direction: row; align-items: center; gap: 20px; padding: 2rem; text-decoration: none;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: url('{{ .avatar }}') center/cover; border: var(--border); flex-shrink: 0;"></div>
+                <div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; text-transform: uppercase;">{{ .name }}</h2>
+                    <p style="font-family: 'Space Mono'; opacity: 0.7; font-size: 0.9rem;">{{ .description }}</p>
+                </div>
+            </a>
+        </div>
+        {{ end }}
+    {{ else }}
+        <div class="span-12">
+            <p>No links configured in data/links.toml</p>
+        </div>
+    {{ end }}
+</main>
+{{ end }}

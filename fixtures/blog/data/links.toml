@@ -1,0 +1,11 @@
+[[friends]]
+    name = "Hugo"
+    avatar = "https://gohugo.io/favicon-32x32.png"
+    url = "https://gohugo.io"
+    description = "Static site generator"
+
+[[friends]]
+    name = "Polymer"
+    avatar = "https://raw.githubusercontent.com/Spixed/polymer/main/theme_logo.png"
+    url = "https://github.com/Spixed/polymer"
+    description = "The theme this fixture uses"

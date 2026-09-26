@@ -1,0 +1,24 @@
+{
+  "name": "blog-writer-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A WYSIWYG editor for Hugo blogs (polymer theme), with split-render and bilingual modes.",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "trustedDependencies": [
+    "esbuild"
+  ],
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "dev:server": "bun run --filter @blog-writer/server-node dev",
+    "dev:frontend": "bun run --filter @blog-writer/frontend dev",
+    "build": "bun run --filter @blog-writer/frontend build",
+    "test": "bun run --filter @blog-writer/server-node test",
+    "typecheck": "bun run --filter @blog-writer/shared typecheck && bun run --filter @blog-writer/server-node typecheck && bun run --filter @blog-writer/frontend typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
