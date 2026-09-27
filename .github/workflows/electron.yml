@@ -33,23 +33,23 @@ jobs:
             target: linux
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      - uses: actions/setup-node@v4
+          bun-version: v1.3.14
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       - run: bun install
       - run: bun run electron:dist --${{ matrix.target }} --${{ matrix.electron_arch }}
         env:
           BLOG_WRITER_TARGET_ARCH: ${{ matrix.electron_arch }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: blog-writer-${{ matrix.artifact }}
           path: electron/release/*
       - name: Publish release assets
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: electron/release/*
