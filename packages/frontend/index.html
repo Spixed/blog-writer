@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blog Writer</title>
+    <!-- Vendored theme fonts (scripts/fetch-fonts.mjs → public/fonts). Loaded
+         in the head — parallel, cache-friendly, fully offline once packaged. -->
+    <link rel="preload" href="/fonts/google-fonts.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="preload" href="/fonts/zeoseven-442.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="preload" href="/fonts/zeoseven-256.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+      <link rel="stylesheet" href="/fonts/google-fonts.css" />
+      <link rel="stylesheet" href="/fonts/zeoseven-442.css" />
+      <link rel="stylesheet" href="/fonts/zeoseven-256.css" />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

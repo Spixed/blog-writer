@@ -2,6 +2,8 @@
   "name": "blog-writer",
   "private": true,
   "version": "0.1.0",
+  "author": "Spixed",
+  "main": "electron/main.mjs",
   "description": "A WYSIWYG editor for Hugo blogs (polymer theme), with split-render and bilingual modes.",
   "type": "module",
   "workspaces": [
@@ -15,6 +17,12 @@
     "dev:server": "bun run --filter @blog-writer/server-node dev",
     "dev:frontend": "bun run --filter @blog-writer/frontend dev",
     "build": "bun run --filter @blog-writer/frontend build",
+    "fonts:fetch": "bun scripts/fetch-fonts.mjs",
+    "electron:fetch-hugo": "bun electron/fetch-hugo.mjs",
+    "electron:prepare": "bun run fonts:fetch && bun run electron:fetch-hugo",
+    "electron:build-server": "bun electron/build-server.ts",
+    "electron:dev": "bun run build && bun run electron:build-server && electron electron/main.mjs",
+    "electron:dist": "bun run electron:prepare && bun run build && bun run electron:build-server && electron-builder --config electron/electron-builder.yml",
     "test": "bun run --filter @blog-writer/server-node test",
     "typecheck": "bun run --filter @blog-writer/shared typecheck && bun run --filter @blog-writer/server-node typecheck && bun run --filter @blog-writer/frontend typecheck",
     "lint": "biome check .",
@@ -22,6 +30,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "electron": "44.4.5",
+    "electron-builder": "^26.0.12",
     "typescript": "^5.9.2"
   }
 }

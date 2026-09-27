@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from './api/index.js';
+import { canPickDirectory, pickDirectory, suggestName } from './api/native.js';
 import { HugoPanel } from './components/HugoPanel.js';
 import type { SelectOption } from './components/SelectMenu.js';
 import { SelectMenu } from './components/SelectMenu.js';
@@ -291,6 +292,23 @@ export function MainShell() {
               onChange={(e) => setWorkspaceRoot(e.target.value)}
               required
             />
+            <button
+              type="button"
+              className="icon-btn"
+              title="选择文件夹"
+              onClick={async () => {
+                if (!canPickDirectory()) {
+                  setWorkspaceError('当前环境没有可用的原生文件夹选择器，请使用 Electron 安装版。');
+                  return;
+                }
+                const picked = await pickDirectory();
+                if (!picked) return;
+                setWorkspaceRoot(picked);
+                if (!workspaceName.trim()) setWorkspaceName(suggestName(picked));
+              }}
+            >
+              浏览…
+            </button>
             <button className="icon-btn primary" disabled={addWorkspace.isPending} type="submit">
               添加工作区
             </button>

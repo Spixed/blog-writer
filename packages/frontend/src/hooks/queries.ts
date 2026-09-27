@@ -41,7 +41,10 @@ export function useAddWorkspace() {
     mutationFn: ({ name, root }: { name: string; root: string }) => api.addWorkspace(name, root),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.workspaces });
-      qc.invalidateQueries({ queryKey: qk.active });
+      // Deliberately NOT invalidating the active-workspace query here: the
+      // first-run gate chains setActive right after add, and an early
+      // active update would mount MainShell (and fire its posts/config
+      // fetches) while the server is still activating the workspace.
     },
   });
 }
@@ -51,11 +54,16 @@ export function useSetActiveWorkspace() {
   return useMutation({
     mutationFn: (name: string) => api.setActiveWorkspace(name),
     onSuccess: (workspace) => {
-      // Every post/config query is relative to the active server workspace.
-      // Remove old responses before the next selection can reuse a matching slug.
-      qc.removeQueries({ predicate: (query) => query.queryKey[0] !== 'workspaces' });
       qc.setQueryData(qk.active, workspace);
-      qc.invalidateQueries({ queryKey: qk.workspaces });
+      // Every post/config/post query is relative to the active server
+      // workspace. Invalidate (never remove) them: removeQueries on an
+      // in-flight fetch orphans the observer — the late response lands in
+      // a detached query object and the UI stays "loading" until an
+      // unrelated re-render rebinds it (hit on first-run setup, where the
+      // gate's add→setActive chain leaves a posts fetch racing the
+      // activation). invalidateQueries cancels in-flight fetches and
+      // refetches, so observers always stay attached.
+      qc.invalidateQueries();
     },
   });
 }

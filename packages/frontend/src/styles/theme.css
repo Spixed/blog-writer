@@ -6,13 +6,13 @@
  * or `data-theme="dark"` on the `.theme-root` element.
  */
 
-/* Exactly the fonts the theme's baseof.html loads (mirror hosts included), so
-   weights and CJK fallbacks match the live blog rather than a close-ish
-   Google Fonts subset. Huiwen Mincho is what Chinese headings actually use,
-   and Maple Mono CN is the code face. */
-@import url("https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+XiaoWei&family=Space+Grotesk:wght@300;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap");
-@import url("https://fontsapi.zeoseven.com/442/main/result.css");
-@import url("https://fontsapi.zeoseven.com/256/main/result.css");
+/* Exactly the fonts the theme's baseof.html loads, vendored locally by
+   scripts/fetch-fonts.mjs (see packages/frontend/public/fonts). The matching
+   <link> tags live in index.html — loaded from there instead of @import so
+   the stylesheets fetch in parallel and the packaged app needs no network.
+   Weights and CJK fallbacks therefore match the live blog rather than a
+   close-ish Google Fonts subset. Huiwen Mincho is what Chinese headings
+   actually use, and Maple Mono CN is the code face. */
 
 /* The palette is shared by the content surface itself and the scroll containers
    around it: the blog's page is a full-bleed --bg surface, so the area outside

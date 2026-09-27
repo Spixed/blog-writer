@@ -1,18 +1,45 @@
+# dependencies
 node_modules/
+
+# build output
 dist/
 build/
-*.log
-.env
-.DS_Store
-.idea/
-.vscode/
+out/
 *.tsbuildinfo
 .vite/
+
+# electron-builder output (installers, win-unpacked, dev user-data)
+electron/release/
+# downloaded Hugo binary (bun run electron:fetch-hugo)
+electron/resources/hugo/
+
+# downloaded web fonts (bun run fonts:fetch)
+packages/frontend/public/fonts/
+
+# test coverage
+coverage/
+
+# runtime data
 .runtime/
 .shots/
 .playwright-cli/
 .playwright-cli-cache/
 .workbuddy/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+
+# editor / OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
 
 # fixture hugo build output
 fixtures/blog/public/

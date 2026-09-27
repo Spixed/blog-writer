@@ -8,6 +8,7 @@ import { qmojiUrl } from '@blog-writer/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useConfig } from '../../hooks/queries.js';
 import { useI18n } from '../../i18n/useI18n.js';
+import { resolveQmojiUrl } from '../../render/media-url.js';
 import { loadLottie } from '../../render/external-scripts.js';
 
 export interface QmojiPickerProps {
@@ -151,11 +152,16 @@ export function QmojiPicker({ open, position, onClose, onPick }: QmojiPickerProp
             {e.emojiType === 2 ? (
               <span
                 className="qmoji-lottie-slot"
-                data-lottie-path={qmojiUrl(e)}
+                data-lottie-path={resolveQmojiUrl(qmojiUrl(e))}
                 aria-label={t('qmojiLottie')}
               />
             ) : (
-              <img src={qmojiUrl(e)} alt={e.describe} loading="lazy" draggable={false} />
+              <img
+                src={resolveQmojiUrl(qmojiUrl(e))}
+                alt={e.describe}
+                loading="lazy"
+                draggable={false}
+              />
             )}
             <span className="qmoji-cell-name">{e.describe.replace(/^\//, '')}</span>
           </button>

@@ -19,6 +19,11 @@ export class HugoManager {
   private serveUrl: string | null = null;
   private outputListeners = new Set<OutputListener>();
   private statusListeners = new Set<StatusListener>();
+  private readonly bin: string;
+
+  constructor(bin?: string) {
+    this.bin = bin ?? 'hugo';
+  }
 
   get serving(): boolean {
     return this.serveProc !== null;
@@ -61,7 +66,7 @@ export class HugoManager {
       };
       try {
         const proc = spawn(
-          'hugo',
+          this.bin,
           ['server', '-D', '--disableFastRender', '--bind', '127.0.0.1', '--port', String(port)],
           { cwd: root, shell: false },
         );
@@ -113,7 +118,7 @@ export class HugoManager {
   async build(root: string): Promise<HugoResult> {
     return new Promise<HugoResult>((resolve) => {
       try {
-        const proc = spawn('hugo', ['--gc', '--renderToMemory'], { cwd: root, shell: false });
+        const proc = spawn(this.bin, ['--gc', '--renderToMemory'], { cwd: root, shell: false });
         let output = '';
         const collect = (chunk: Buffer) => {
           const text = chunk.toString('utf8');

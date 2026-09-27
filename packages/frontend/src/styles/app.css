@@ -2484,7 +2484,7 @@ a.icon-btn:visited {
 }
 .workspace-manager-form {
   display: grid;
-  grid-template-columns: 1fr 1.5fr auto;
+  grid-template-columns: minmax(80px, 1fr) minmax(120px, 1.5fr) auto auto;
   gap: 7px;
 }
 .workspace-manager-form input {

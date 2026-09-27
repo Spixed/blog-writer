@@ -15,6 +15,7 @@ import type { WebSocket } from 'ws';
 import { WorkspaceStore } from './config-store.js';
 import { HugoManager } from './hugo.js';
 import { PostStore } from './posts.js';
+import { fetchQmoji, qmojiContentType } from './qmoji.js';
 import { Site } from './site.js';
 import { Watcher } from './watcher.js';
 
@@ -32,6 +33,9 @@ export interface ServerOptions {
   defaultRoot?: string;
   /** Suggested name for the default workspace. */
   defaultName?: string;
+  frontendDist?: string;
+  /** Hugo binary to spawn; defaults to `hugo` on PATH. */
+  hugoBin?: string;
 }
 
 type RouteHandler = (req: any, reply: any) => Promise<any>;
@@ -45,7 +49,7 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
   close: () => Promise<void>;
 }> {
   const store = new WorkspaceStore();
-  const hugo = new HugoManager();
+  const hugo = new HugoManager(opts.hugoBin);
   let active: ActiveWorkspace | null = null;
   const sockets = new Set<WebSocket>();
 
@@ -423,6 +427,19 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
     }),
   );
 
+  // ---- qmoji (disk-cached jsDelivr proxy) ------------------------------
+  app.get(
+    '/api/qmoji/*',
+    wrap(async (req, reply) => {
+      const relPath = req.params['*'];
+      if (!relPath) throw new Error('无效的路径');
+      const data = await fetchQmoji(relPath);
+      reply.header('Content-Type', qmojiContentType(relPath));
+      reply.header('Cache-Control', 'public, max-age=31536000, immutable');
+      return reply.send(data);
+    }),
+  );
+
   // ---- hugo ------------------------------------------------------------
   app.post(
     '/api/hugo',
@@ -450,6 +467,20 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
       }
     });
   });
+
+  if (opts.frontendDist) {
+    const root = path.resolve(opts.frontendDist);
+    const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
+    app.get('/*', async (req: any, reply) => {
+      const requested = typeof req.params['*'] === 'string' ? req.params['*'] : '';
+      const candidate = path.resolve(root, requested || 'index.html');
+      if (candidate !== root && !candidate.startsWith(`${root}${path.sep}`)) return reply.code(403).send('Forbidden');
+      let target = candidate;
+      try { if (!(await fs.stat(target)).isFile()) target = path.join(root, 'index.html'); } catch { target = path.join(root, 'index.html'); }
+      reply.header('Content-Type', mime[path.extname(target).toLowerCase()] ?? 'application/octet-stream');
+      return reply.send(await fs.readFile(target));
+    });
+  }
 
   // Re-broadcast watcher events through the active context's watcher.
   // (watcher.on was registered during activate(); nothing else needed here.)

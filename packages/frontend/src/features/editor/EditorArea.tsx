@@ -10,7 +10,7 @@
 import type { Frontmatter, Lang } from '@blog-writer/shared';
 import { defaultFrontmatter } from '@blog-writer/shared';
 import { FilePenLine, Files, ListTree, Save } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { PreviewPane } from '../../components/PreviewPane.js';
 import { useToasts } from '../../components/ui.js';
 import { usePost, useWritePost } from '../../hooks/queries.js';
@@ -18,10 +18,13 @@ import { useSyncScroll } from '../../hooks/useSyncScroll.js';
 import { useI18n } from '../../i18n/useI18n.js';
 import { EDITOR_MODES, useUI } from '../../store/ui.js';
 import { FrontmatterPanel } from './FrontmatterPanel.js';
-import { MarkdownSourceEditor } from './MarkdownSourceEditor.js';
 import type { PostEditor } from './usePostEditor.js';
 import { usePostEditor } from './usePostEditor.js';
 import { WysiwygEditor } from './WysiwygEditor.js';
+
+const MarkdownSourceEditor = lazy(() =>
+  import('./MarkdownSourceEditor.js').then((module) => ({ default: module.MarkdownSourceEditor })),
+);
 
 const OTHER_LANG: Record<Lang, Lang> = { zh: 'en', en: 'zh' };
 const LANG_LABEL: Record<Lang, string> = { zh: '中文', en: 'English' };
@@ -286,13 +289,15 @@ function SplitPane({
       </PaneHead>
       <div className="split-pane" style={{ '--split': ratio } as React.CSSProperties}>
         <div className="split-editor">
-          <MarkdownSourceEditor
-            value={editor.body}
-            onChange={editor.setBody}
-            placeholder={t('splitEditorHint')}
-            scrollKey={`${lang}:${slug}`}
-            scrollerRef={register('source')}
-          />
+          <Suspense fallback={<div style={{ height: '100%' }} />}>
+            <MarkdownSourceEditor
+              value={editor.body}
+              onChange={editor.setBody}
+              placeholder={t('splitEditorHint')}
+              scrollKey={`${lang}:${slug}`}
+              scrollerRef={register('source')}
+            />
+          </Suspense>
         </div>
         <SplitDivider onRatio={onRatio} />
         <div className="split-preview">
