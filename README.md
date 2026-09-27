@@ -6,6 +6,7 @@
 modes — with a byte-exact round-trip guarantee.**
 
 [![CI](https://github.com/Spixed/blog-writer/actions/workflows/ci.yml/badge.svg)](https://github.com/Spixed/blog-writer/actions/workflows/ci.yml)
+[![Electron packages](https://github.com/Spixed/blog-writer/actions/workflows/electron.yml/badge.svg)](https://github.com/Spixed/blog-writer/actions/workflows/electron.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/runtime-Bun%20%E2%89%A5%201.2-f472b6)](https://bun.sh)
 
@@ -26,9 +27,9 @@ Notion-style editing surface directly on top of a real Hugo workspace:
   keeps everything else verbatim.
 - Hugo shortcodes are **editable atoms**, not opaque text.
 
-The project is web-first: the same frontend can later run unchanged inside an
-Electron / Tauri shell, because it talks only to the `WorkspaceApi` contract —
-switching shells means swapping one adapter.
+The frontend talks only to the `WorkspaceApi` contract, so it runs unchanged
+in the browser and inside the bundled Electron desktop shell — switching
+shells means swapping one adapter.
 
 ## Features
 
@@ -57,6 +58,11 @@ switching shells means swapping one adapter.
 - **Solid backend** — Fastify + WebSocket: posts CRUD, config, taxonomy, file
   watching (posts, media, data, configuration, theme) with conflict states —
   a dirty draft is never silently overwritten — plus Hugo integration.
+- **Desktop app** — an Electron shell boots the same Fastify backend on a
+  loopback port and serves the production build from the same origin; a
+  minimal sandboxed preload bridge adds a native folder picker, the packaged
+  app bundles a Hugo binary and offline-vendored theme fonts, and qmoji
+  images go through a disk-caching backend proxy.
 - **Careful details** — Unicode slugs (`birthday_δ-me13` works), configurable
   autosave (250–10,000 ms, default 1,000 ms, off by default; Ctrl/Cmd+S
   always available), and multiple workspaces.
@@ -104,6 +110,17 @@ bun dev --host                # bind both servers to 0.0.0.0
 bun dev --host 192.168.1.10   # bind to a specific address
 ```
 
+### Desktop app
+
+```bash
+bun run electron:dev    # production build + an Electron window
+bun run electron:dist   # installers: NSIS/portable (Windows), dmg/zip (macOS), AppImage/deb (Linux)
+```
+
+Packaging vendors the theme fonts and bundles Hugo extended v0.166.0 into the
+app, so the packaged build works offline. Artifacts land in
+`electron/release/`; details in [electron/README.md](electron/README.md).
+
 ## Configuration
 
 Point `BLOG_ROOT` in `.env` (see [`.env.example`](.env.example)) at your Hugo
@@ -116,8 +133,10 @@ You can also pick a directory in the UI; that choice is persisted to
 ```
 packages/
   shared/        types, WorkspaceApi contract, front-matter schema, shortcode specs
-  frontend/      React + Vite UI (designed to be reused verbatim by Electron/Tauri)
-  server-node/   Fastify backend (reusable by an Electron main process)
+  frontend/      React + Vite UI (runs verbatim in the browser and in Electron)
+  server-node/   Fastify backend (embedded by the Electron main process)
+electron/       desktop shell: main process, sandboxed preload bridge, packaging config
+scripts/        dev server and build helpers (dev.ts, fetch-fonts.mjs)
 ```
 
 ## Development
@@ -177,11 +196,21 @@ numbers.
 | P2 | Render pipeline: Web Worker, shortcodes, MathJax, Shiki, Hugo checks | ✅ |
 | P3 | Three editing modes, floating front-matter panel, undoable rename/delete | ✅ |
 | P4 | Media manager, find & replace, performance pass | ✅ |
-| P5 | Electron / Tauri shells | ⏳ |
-| P6 | gpui native (when the ecosystem is ready) | 🔭 |
+| P5 | Electron shell: desktop packaging for Windows / macOS / Linux, bundled Hugo, offline fonts | ✅ |
+| P6 | gpui native (feasibility evaluated; blocked on the ecosystem) | 🔭 |
+
+An Electron alternative — Tauri 2 with a Bun sidecar — plus the
+native-rendering options were evaluated in the
+[GPUIX port feasibility report](docs/gpuix-port-feasibility-report.md).
 
 Known limitation: pixel-level visual parity between the WYSIWYG surface and
 the live render is not yet an automated acceptance guarantee.
+
+## More documentation
+
+- [Productization roadmap (中文)](docs/productization-roadmap.zh-CN.md) — from a working web app to a releasable desktop product
+- [GPUIX port feasibility report](docs/gpuix-port-feasibility-report.md) — why native rendering is off the table for now
+- [Electron shell](electron/README.md) — desktop packaging details
 
 ## Contributing
 

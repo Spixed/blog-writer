@@ -5,6 +5,7 @@
 **面向 Hugo 博客的本地优先编辑器。所见即所得、分栏渲染、双语模式 —— 带逐字节精确的 round-trip 保证。**
 
 [![CI](https://github.com/Spixed/blog-writer/actions/workflows/ci.yml/badge.svg)](https://github.com/Spixed/blog-writer/actions/workflows/ci.yml)
+[![Electron packages](https://github.com/Spixed/blog-writer/actions/workflows/electron.yml/badge.svg)](https://github.com/Spixed/blog-writer/actions/workflows/electron.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/runtime-Bun%20%E2%89%A5%201.2-f472b6)](https://bun.sh)
 
@@ -20,7 +21,7 @@ Hugo 让你完全掌控自己的内容 —— 但写作只能在纯文本编辑�
 - 每次保存都**逐字节精确**：读取文章再写回，文件不会有任何变化。编辑器只重新序列化你真正编辑过的部分，其余一律逐字保留。
 - Hugo shortcode 是**可编辑的原子**，不是一坨不透明的文本。
 
-项目以 Web UI 为先：前端只与 `WorkspaceApi` 契约通信，因此同一套界面之后可以原样跑进 Electron / Tauri 壳 —— 切换壳只需换掉一个适配器。
+前端只与 `WorkspaceApi` 契约通信，因此同一套界面既能跑在浏览器里，也能原样跑进内置的 Electron 桌面壳 —— 切换壳只需换掉一个适配器。
 
 ## 特性
 
@@ -32,6 +33,7 @@ Hugo 让你完全掌控自己的内容 —— 但写作只能在纯文本编辑�
 - **查找与替换** —— Markdown 源码窗格内置的 CodeMirror 面板（`Ctrl/Cmd+F`），另有 Markdown 与 shortcode 补全、可见空白符与缩进。
 - **忠实主题渲染** —— markdown-it 运行于 Web Worker，支持主题的三个 shortcode、MathJax v4、Shiki（Chroma/Monokai）、图片 figure 与 `<!--more-->`；主题字体栈与首字下沉尺寸实时重测量，主题跟随系统配色。
 - **扎实的后端** —— Fastify + WebSocket：文章 CRUD、配置、分类法、文件监听（文章、媒体、data、配置、主题）与冲突状态 —— 绝不静默覆盖未保存的草稿 —— 外加 Hugo 集成。
+- **桌面应用** —— Electron 壳在回环端口启动同一个 Fastify 后端，并同源托管生产构建；极小的沙箱 preload 桥提供原生目录选择器，打包版本内置 Hugo 二进制与离线主题字体，qmoji 图片经后端磁盘缓存代理获取。
 - **用心的细节** —— Unicode slug（`birthday_δ-me13` 也可用）、可配置的自动保存（250–10,000 ms，默认 1,000 ms，默认关闭；Ctrl/Cmd+S 始终可用）、多工作区。
 
 ## 截图
@@ -76,6 +78,15 @@ bun dev --host                # 两个服务器均绑定 0.0.0.0
 bun dev --host 192.168.1.10   # 绑定到指定地址
 ```
 
+### 桌面应用
+
+```bash
+bun run electron:dev    # 生产构建 + Electron 窗口
+bun run electron:dist   # 打包安装程序：Windows（NSIS/便携版）、macOS（dmg/zip）、Linux（AppImage/deb）
+```
+
+打包时会预先内置主题字体和 Hugo extended v0.166.0，成品可离线使用。产物输出到 `electron/release/`；详见 [electron/README.md](electron/README.md)。
+
 ## 配置
 
 在 `.env` 中把 `BLOG_ROOT`（见 [`.env.example`](.env.example)）指向你的 Hugo 博客根目录 —— 首次运行时用于预注册默认工作区。也可以在界面中选择目录；该选择会持久化到 `~/.blog-writer/config.json`。支持多工作区。
@@ -85,8 +96,10 @@ bun dev --host 192.168.1.10   # 绑定到指定地址
 ```
 packages/
   shared/        类型、WorkspaceApi 契约、front-matter schema、shortcode 规格
-  frontend/      React + Vite UI（设计上可被 Electron/Tauri 原样复用）
-  server-node/   Fastify 后端（可被 Electron 主进程复用）
+  frontend/      React + Vite UI（浏览器与 Electron 中原样复用）
+  server-node/   Fastify 后端（被 Electron 主进程内嵌）
+electron/       桌面壳：主进程、沙箱 preload 桥、打包配置
+scripts/        开发与构建辅助脚本（dev.ts、fetch-fonts.mjs）
 ```
 
 ## 开发
@@ -139,10 +152,19 @@ P4 性能探针对一个 62 KiB 的混合文档进行输入和滚动，并记录
 | P2 | 渲染管线：Web Worker、shortcode、MathJax、Shiki、Hugo 校验 | ✅ |
 | P3 | 三种编辑模式、浮动 front-matter 面板、可撤销的重命名/删除 | ✅ |
 | P4 | 媒体管理、查找与替换、性能打磨 | ✅ |
-| P5 | Electron / Tauri 壳 | ⏳ |
-| P6 | gpui 原生（待生态就绪） | 🔭 |
+| P5 | Electron 壳：Windows / macOS / Linux 桌面打包、内置 Hugo、离线字体 | ✅ |
+| P6 | gpui 原生（可行性已评估，受生态限制暂缓） | 🔭 |
+
+备选路线 —— Tauri 2 + Bun sidecar 及各原生渲染方案 —— 已在
+[GPUIX 桌面移植可行性调研报告](docs/gpuix-port-feasibility-report.md)中逐项评估。
 
 已知限制：WYSIWYG 编辑面与实时渲染之间的像素级视觉一致性尚未成为自动化验收保证。
+
+## 更多文档
+
+- [产品化实施方案（中文）](docs/productization-roadmap.zh-CN.md) —— 从可用的 Web 项目到可发布的桌面产品
+- [GPUIX 桌面移植可行性调研报告](docs/gpuix-port-feasibility-report.md) —— 为什么原生渲染暂不可行
+- [Electron 壳](electron/README.md) —— 桌面打包细节
 
 ## 参与贡献
 

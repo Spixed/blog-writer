@@ -22,6 +22,8 @@ bun dev
 | `packages/shared` | Types and contracts shared by every adapter |
 | `packages/server-node` | Fastify backend — keep it shell-agnostic |
 | `packages/frontend` | React UI — talk only to the `WorkspaceApi` contract, never to the backend directly |
+| `electron/` | Desktop shell — main process, sandboxed preload bridge, packaging config. No second API: everything still goes through `WorkspaceApi` |
+| `scripts/` | Dev server and build helpers (`dev.ts`, `fetch-fonts.mjs`) |
 
 ## Pull request checklist
 
@@ -35,7 +37,8 @@ bun test
 
 If your change touches the frontend render pipeline, also run the frontend
 checks listed in the README's [Testing](README.md#testing) section from
-`packages/frontend`.
+`packages/frontend`. If it touches the Electron shell or packaging, run
+`bun run electron:dev` once to verify the desktop launch path.
 
 ## The round-trip guarantee
 
