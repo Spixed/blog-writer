@@ -10,8 +10,8 @@ out/
 
 # electron-builder output (installers, win-unpacked, dev user-data)
 electron/release/
-# downloaded Hugo binary (bun run electron:fetch-hugo)
-electron/resources/hugo/
+# downloaded Hugo binary (bun run electron:fetch-hugo) and some logs
+electron/resources/
 
 # downloaded web fonts (bun run fonts:fetch)
 packages/frontend/public/fonts/

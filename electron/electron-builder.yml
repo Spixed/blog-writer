@@ -34,3 +34,6 @@ mac:
 linux:
   target: [AppImage, deb]
   category: Office
+  # electron-builder requires an explicit maintainer for the Debian target.
+  # Keep this aligned with the package author without inventing contact data.
+  maintainer: Spixed

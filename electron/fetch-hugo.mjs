@@ -38,10 +38,10 @@ function target() {
 
 function downloadUrls(asset) {
   const base = `https://github.com/gohugoio/hugo/releases/download/v${VERSION}/${asset}`;
-  const urls = [`https://gh.sevencdn.com/${base}`, base];
+  const urls = [base];
   const mirror = process.env.HUGO_MIRROR;
   if (mirror) urls.unshift(`${mirror.replace(/\/$/, '')}/${base}`);
-  else urls.push(`https://ghfast.top/${base}`, `https://gh-proxy.com/${base}`);
+  else urls.push(`https://gh.sevencdn.com/${base}`, `https://ghfast.top/${base}`, `https://gh-proxy.com/${base}`);
   return urls;
 }
 
@@ -76,7 +76,10 @@ async function fetchArchive(asset) {
 function extract(archive, destDir, asset) {
   fs.mkdirSync(destDir, { recursive: true });
   if (asset.endsWith('.pkg')) {
-    const r = spawnSync('pkgutil', ['--expand-full', archive, destDir], { stdio: 'inherit' });
+    // pkgutil requires the output path not to exist. Keep it below the
+    // temporary work directory so repeated CI runs cannot collide with it.
+    const pkgDest = path.join(destDir, 'pkg-expanded');
+    const r = spawnSync('pkgutil', ['--expand-full', archive, pkgDest], { stdio: 'inherit' });
     if (r.status !== 0) throw new Error(`macOS 安装包解压失败 (pkgutil exit ${r.status})`);
     return;
   }
