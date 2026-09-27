@@ -1,0 +1,36 @@
+appId: dev.spixed.blogwriter
+productName: Blog Writer
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+directories:
+  output: electron/release
+  buildResources: electron/resources
+files:
+  - electron/main.mjs
+  - electron/preload.cjs
+  - electron/dist/**
+  - packages/frontend/dist/**
+asar: true
+electronLanguages:
+  - en-US
+  - zh-CN
+extraResources:
+  - from: electron/resources/hugo
+    to: hugo
+    filter:
+      - hugo
+      - hugo.exe
+publish: null
+win:
+  target: [nsis, portable]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-Setup-${version}-${os}-${arch}.${ext}
+portable:
+  artifactName: ${productName}-Portable-${version}-${os}-${arch}.${ext}
+mac:
+  target: [dmg, zip]
+  category: public.app-category.productivity
+linux:
+  target: [AppImage, deb]
+  category: Office
