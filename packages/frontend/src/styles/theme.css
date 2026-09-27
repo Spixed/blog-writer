@@ -164,8 +164,8 @@
 .theme-root .content blockquote p {
   margin-bottom: 0;
 }
-.theme-root .content blockquote p:first-of-type::first-letter,
-.theme-root .content p:first-of-type::first-letter {
+.theme-root .content > blockquote p:first-of-type::first-letter,
+.theme-root .content > p:first-of-type::first-letter {
   font-size: var(--drop-cap-size, 4rem);
   float: left;
   margin-right: 0.6rem;

@@ -1973,6 +1973,11 @@ select {
 .wysiwyg-prose .hljs-number {
   color: #b5cea8;
 }
+/* Lowlight's PowerShell grammar emits IPv4 components and ports as numbers;
+   keep the full address in Hugo/Chroma's numeric green. */
+.wysiwyg-prose code.language-powershell .hljs-number {
+  color: #b5cea8;
+}
 .wysiwyg-prose .hljs-title,
 .wysiwyg-prose .hljs-section,
 .wysiwyg-prose .hljs-title.function_,
@@ -2002,6 +2007,13 @@ select {
 }
 .wysiwyg-prose .hljs-strong {
   font-weight: bold;
+}
+
+/* Keep PowerShell flags visually consistent with Hugo/Chroma. Lowlight
+   labels `--global` as a literal, while Chroma renders it as a plain
+   argument; the command itself remains unchanged. */
+.wysiwyg-prose code.language-powershell .hljs-literal {
+  color: inherit;
 }
 
 /* Goldmark only applies a drop cap to the article's first direct paragraph

@@ -22,7 +22,7 @@ import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
-import { common, createLowlight } from 'lowlight';
+import { all, common, createLowlight } from 'lowlight';
 import { ChevronDown, Code2, Link2, List, Quote } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme.js';
@@ -122,7 +122,19 @@ export function WysiwygEditor({ value, onChange, scrollRef, scrollKey }: Wysiwyg
           HTMLAttributes: { rel: 'noopener noreferrer' },
         },
       }),
-      EditorCodeBlock.configure({ lowlight: createLowlight(common), defaultLanguage: 'plaintext' }),
+      EditorCodeBlock.configure({
+        // Keep the editor's token decorations on the same language coverage as
+        // Hugo's renderer for the PowerShell blocks used by the blog posts.
+        lowlight: (() => {
+          const instance = createLowlight(common);
+          // PowerShell is outside lowlight's small `common` preset, but is a
+          // first-class language in the blog content. Register its grammar
+          // from lowlight's bundled catalogue so editor tokens match Hugo.
+          instance.register({ powershell: all.powershell });
+          return instance;
+        })(),
+        defaultLanguage: 'plaintext',
+      }),
       Placeholder.configure({ placeholder: t('editorPlaceholder') }),
       // The theme's three shortcodes, editable natively.
       Hl,

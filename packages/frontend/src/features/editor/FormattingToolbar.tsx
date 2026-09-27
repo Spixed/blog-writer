@@ -304,6 +304,7 @@ function CodeLanguage({ editor }: { editor: Editor }) {
     'typescript',
     'python',
     'bash',
+    'powershell',
     'json',
     'html',
     'css',
