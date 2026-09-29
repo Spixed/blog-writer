@@ -13,7 +13,7 @@
     },
     "packages/frontend": {
       "name": "@blog-writer/frontend",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@blog-writer/shared": "workspace:*",
         "@codemirror/autocomplete": "^6.20.3",
@@ -60,7 +60,7 @@
     },
     "packages/server-node": {
       "name": "@blog-writer/server-node",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "blog-writer-server": "./src/index.ts",
       },
@@ -82,7 +82,7 @@
     },
     "packages/shared": {
       "name": "@blog-writer/shared",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "devDependencies": {
         "typescript": "^5.9.2",
       },

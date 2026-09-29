@@ -113,7 +113,7 @@ export async function createServer(opts: ServerOptions = {}): Promise<{
     };
 
   // ---- health ----------------------------------------------------------
-  app.get('/api/health', () => ({ ok: true, version: '0.1.0' }));
+  app.get('/api/health', () => ({ ok: true, version: '0.1.1' }));
 
   // ---- workspaces ------------------------------------------------------
   app.get(
