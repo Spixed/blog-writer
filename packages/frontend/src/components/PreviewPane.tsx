@@ -53,11 +53,13 @@ export function PreviewPane({ source, scrollerRef, onRendered }: PreviewPaneProp
     adjustDropCap(el);
   }, []);
 
-  // Animate lottie qmoji exactly like the theme's main.js.
+  // Animate lottie qmoji exactly like the theme's main.js. Keyed on the
+  // rendered html: DOM replacement kills the previous animations, and at
+  // mount the html is still empty, so this must re-run per render.
   useEffect(() => {
     const el = rootRef.current;
     if (el) return animateLottie(el);
-  }, []);
+  }, [html]);
 
   return (
     <div

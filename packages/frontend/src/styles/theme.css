@@ -467,7 +467,11 @@
 }
 
 /* ---- qmoji ----------------------------------------------------------- */
-.theme-root .qmoji {
+/* Qmoji are emoji atoms, not content images: they must not inherit the
+   article img chrome (border / hard shadow / 2rem margin). The extra
+   `.content` class raises specificity to (0,3,0) so the reset wins over
+   `.theme-root .content img` (0,2,1) in both the editor and the preview. */
+.theme-root .content .qmoji {
   display: inline-block;
   vertical-align: text-bottom;
   height: 1.2em;
@@ -490,11 +494,13 @@
   margin: 1rem 0;
   padding: 1rem;
 }
-.theme-root .qmoji-block {
+/* The block variants must out-rank the (0,3,0) reset above, so they are
+   scoped under `.content` too and rely on source order to win the tie. */
+.theme-root .content .qmoji-block {
   height: 4em;
   width: auto;
 }
-.theme-root .super-qmoji.qmoji-block {
+.theme-root .content .super-qmoji.qmoji-block {
   width: auto;
   height: 4em;
 }

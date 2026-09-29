@@ -2043,11 +2043,18 @@ select {
   vertical-align: text-bottom;
   white-space: nowrap;
 }
+/* Block qmoji atoms mirror the theme's `.qmoji-container-block` (margin 1rem,
+   padding 1rem) so the editor reproduces the blog's block emoji spacing. The
+   editor element itself is `.content.wysiwyg-prose`, hence no descendant
+   combinator here. Horizontal padding is dropped: the atom is width:100%, so
+   side padding would only shrink the centring area, not move the emoji. */
 .wysiwyg-prose .qmoji-block-atom {
   display: block;
   width: 100%;
+  box-sizing: border-box;
   text-align: center;
-  margin: 0.75rem 0;
+  margin: 1rem 0;
+  padding: 1rem 0;
 }
 .wysiwyg-prose .content .qmoji-atom.selected {
   outline: 2px solid var(--app-accent);

@@ -85,12 +85,6 @@ function QmojiView({ node, selected }: NodeViewProps) {
     };
   }, [source]);
 
-  // Lottie emoji animate themselves; static ones are just <img>.
-  useEffect(() => {
-    const el = bodyRef.current;
-    if (el) return animateLottie(el);
-  }, []);
-
   // The shortcode renderer intentionally returns a paragraph/container for
   // normal Markdown output. That wrapper is invalid inside an inline NodeView
   // (`<span><p>…`) and makes ProseMirror insert separator paragraphs, which
@@ -98,6 +92,14 @@ function QmojiView({ node, selected }: NodeViewProps) {
   // payload inside the atom; block mode is represented as an inline-block atom
   // and is still independently selectable/editable.
   const safeHtml = useMemo(() => normalizeQmojiHtml(html, mode), [html, mode]);
+
+  // Lottie emoji animate themselves; static ones are just <img>. The effect
+  // must key on the rendered payload: at mount `html` is still empty (render
+  // is async), so an empty-dep effect would find no [data-lottie-path] nodes.
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (el) return animateLottie(el);
+  }, [safeHtml]);
 
   return (
     <NodeViewWrapper

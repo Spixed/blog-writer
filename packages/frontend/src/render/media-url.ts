@@ -32,13 +32,23 @@ export function resolveMediaUrl(url: string): string {
   return resolveQmojiUrl(url);
 }
 
-const MEDIA_ATTR = /\b(src|poster)="(\/[^"\\/][^"]*)"/g;
+const MEDIA_ATTR = /\b(src|poster)="(\/(?!api\/)[^"\\/][^"]*)"/g;
 // Qmoji output carries absolute CDN urls (img src, lottie data-lottie-path).
-const QMOJI_ATTR = /\b(src|poster|data-lottie-path)="(https:\/\/cdn\.jsdelivr\.net\/gh\/Spixed\/Qmoji@main\/res\/[^"]*)"/g;
+const QMOJI_ATTR =
+  /\b(src|poster|data-lottie-path)="(https:\/\/cdn\.jsdelivr\.net\/gh\/Spixed\/Qmoji@main\/res\/[^"]*)"/g;
 
-/** Rewrite root-relative and qmoji CDN src/poster attributes in rendered HTML. */
+/**
+ * Rewrite root-relative and qmoji CDN src/poster attributes in rendered HTML.
+ *
+ * Order matters: root-relative media must be rewritten BEFORE the qmoji pass.
+ * QMOJI_ATTR turns absolute CDN urls into root-relative `/api/qmoji/...`
+ * paths; if MEDIA_ATTR ran after it, it would match those freshly rewritten
+ * attributes and double-prefix them into the broken
+ * `/api/media/raw/api/qmoji/...`. The `(?!api\/)` lookahead additionally keeps
+ * the media pass idempotent for already-proxied URLs.
+ */
 export function resolveMediaHtml(html: string): string {
   return html
-    .replace(QMOJI_ATTR, (_m, attr: string, u: string) => `${attr}="${resolveQmojiUrl(u)}"`)
-    .replace(MEDIA_ATTR, (_m, attr: string, p: string) => `${attr}="${resolveMediaUrl(p)}"`);
+    .replace(MEDIA_ATTR, (_m, attr: string, p: string) => `${attr}="${resolveMediaUrl(p)}"`)
+    .replace(QMOJI_ATTR, (_m, attr: string, u: string) => `${attr}="${resolveQmojiUrl(u)}"`);
 }
